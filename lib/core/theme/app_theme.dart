@@ -24,6 +24,24 @@ class MyThemeData {
 
       )
       ,
+      tabBarTheme: TabBarTheme(
+          labelColor:AppColors.primaryColor,
+          unselectedLabelColor: Colors.grey,
+          indicatorColor: AppColors.primaryColor,
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryColor,
+              foregroundColor: Colors.white,
+          ),
+      ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+          backgroundColor: AppColors.primaryColor,
+      ),
+      cardTheme: CardTheme(
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
 
   );
 }

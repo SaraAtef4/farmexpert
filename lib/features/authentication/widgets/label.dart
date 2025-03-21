@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class CostumizedLabel extends StatelessWidget{
+class CustomLabel extends StatelessWidget {
   String text;
-  CostumizedLabel({required this.text});
+  CustomLabel({required this.text});
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -12,10 +12,8 @@ class CostumizedLabel extends StatelessWidget{
           text,
           textAlign: TextAlign.start,
           style: Theme.of(context).textTheme.labelMedium,
-
-    ),
+        ),
       ],
     );
   }
-
 }

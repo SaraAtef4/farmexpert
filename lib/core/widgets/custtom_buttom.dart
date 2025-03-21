@@ -2,11 +2,11 @@ import 'package:farmxpert/core/theme/colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class CostumizedButton extends StatelessWidget {
+class CustomButton extends StatelessWidget {
   final String text;
   final VoidCallback ontap;
 
-  CostumizedButton({required this.text, required this.ontap});
+  CustomButton({required this.text, required this.ontap});
 
   @override
   Widget build(BuildContext context) {

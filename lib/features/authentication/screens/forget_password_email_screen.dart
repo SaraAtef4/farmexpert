@@ -83,7 +83,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                   },
                 ),
                 SizedBox(height: 90),
-                CostumizedButton(
+                CustomButton(
                   text: 'Send Password Reset Link',
                   ontap: _resetPassword,
                 ),

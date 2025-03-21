@@ -34,15 +34,15 @@ class MainSplashScreen extends StatelessWidget {
                 // أضف شاشات السلايد هنا
                 SplashContent(
                   imagePath: 'assets/images/spalsh_1.PNG',
-                  text: 'Welcome to farmXpert the best app for your farm',
+                  text: 'Welcome to FarmXpert\nSmart farming starts here!',
                 ),
                 SplashContent(
                   imagePath: 'assets/images/splach_2.PNG',
-                  text: ' good care for your cattle',
+                  text: 'Track. Manage. Grow',
                 ),
                 SplashContent(
                   imagePath: 'assets/images/splash_3.PNG',
-                  text: 'best app for you farm',
+                  text: 'All-in-one app for your farm!',
                 ),
               ],
             ),
@@ -65,7 +65,7 @@ class MainSplashScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 16),
-                CostumizedButton(
+                CustomButton(
                   text:
                     Provider.of<SplashProvider>(context).currentPage == 2
                         ? 'Get Started'

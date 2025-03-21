@@ -34,36 +34,40 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      body: Stack(
         children: [
-          Expanded(
-            flex: 2,
-            child: Stack(
+
+          Positioned.fill(
+            child: Column(
               children: [
-                Positioned.fill(
-                  child: Image.asset(
-                    opacity: AlwaysStoppedAnimation(.9),
-                    'assets/images/sign_in.png',
-                    fit: BoxFit.cover,
-                  ),
+                Image.asset(
+                  'assets/images/sign_in.png',
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: MediaQuery.of(context).size.height * 0.33,
                 ),
-                SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: IconButton(
-                      icon: Icon(Icons.arrow_back, color: AppColors.whiteColor),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ),
-                ),
+                Spacer(),
               ],
             ),
           ),
-          Expanded(
-            flex: 5,
+
+
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: IconButton(
+                icon: Icon(Icons.arrow_back, color: AppColors.whiteColor),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ),
+
+
+          Align(
+            alignment: Alignment.bottomCenter,
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 45),
               decoration: BoxDecoration(
                 color: AppColors.whiteColor,
                 borderRadius: BorderRadius.only(
@@ -102,9 +106,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             setState(() {
                               _isRememberMeChecked = value!;
                             });
-                            final authProvider = Provider.of<AuthProvider>(
-                                context,
-                                listen: false);
+                            final authProvider =
+                            Provider.of<AuthProvider>(context, listen: false);
                             authProvider.saveRememberMe(_isRememberMeChecked);
                           },
                           activeColor: AppColors.secondaryColor,
@@ -115,8 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         Spacer(),
                         TextButton(
-                          onPressed: () => Navigator.pushNamed(
-                              context, '/forget-password'),
+                          onPressed: () => Navigator.pushNamed(context, '/forget-password'),
                           child: Text(
                             'Forget password',
                             style: TextStyle(
@@ -129,47 +131,38 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     SizedBox(height: MediaQuery.of(context).size.height * 0.1),
                     _isLoading
-                        ? Center(
-                            child: CircularProgressIndicator(
-                                color: AppColors.secondaryColor))
-                        : CostumizedButton(
-                            text: "Login",
-                            ontap: () async {
-                              if (_formKey.currentState?.validate() ?? false) {
-                                // <-- Form validation check
-                                setState(() => _isLoading = true);
-                                final authProvider = Provider.of<AuthProvider>(
-                                    context,
-                                    listen: false);
-                                try {
-                                  await authProvider.login(
-                                      _emailController.text,
-                                      _passwordController.text);
-                                  Navigator.pushReplacementNamed(
-                                      context, '/home');
-                                } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                        content: Text(
-                                            "Login failed: ${e.toString()}")),
-                                  );
-                                } finally {
-                                  setState(() => _isLoading = false);
-                                }
-                              }
-                            },
-                          ),
+                        ? Center(child: CircularProgressIndicator(color: AppColors.secondaryColor))
+                        : CustomButton(
+                      text: "Login",
+                      ontap: () async {
+                        if (_formKey.currentState?.validate() ?? false) {
+                          setState(() => _isLoading = true);
+                          final authProvider =
+                          Provider.of<AuthProvider>(context, listen: false);
+                          try {
+                            await authProvider.login(
+                                _emailController.text, _passwordController.text);
+                            Navigator.pushReplacementNamed(context, '/home');
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Login failed: ${e.toString()}")),
+                            );
+                          } finally {
+                            setState(() => _isLoading = false);
+                          }
+                        }
+                      },
+                    ),
                     Center(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text("Don’t have an account?",
-                              style: TextStyle(color: Color(0xffCCCCCC))),
+                          Text("Don’t have an account?", style: TextStyle(color: Color(0xffCCCCCC))),
                           TextButton(
-                            onPressed: () {},
-                            child: Text('Visit Website',
-                                style:
-                                    TextStyle(color: AppColors.primaryColor)),
+                            onPressed: () {
+
+                            },
+                            child: Text('Visit Website', style: TextStyle(color: AppColors.primaryColor)),
                           ),
                         ],
                       ),

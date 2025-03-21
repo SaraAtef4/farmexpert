@@ -19,9 +19,9 @@ class ChooseRoleScreen extends StatelessWidget {
             ),
           ),
           SizedBox(height: 40),
-          RoleCard(imgPath: 'assets/images/Group 174.png', role: 'Manger'),
+          RoleCard(imgPath: 'assets/images/Group 174.png', role: ''),
           SizedBox(height: 20),
-          RoleCard(imgPath: 'assets/images/worker.png', role: 'Worker'),
+          RoleCard(imgPath: 'assets/images/worker.png', role: ''),
 
           SizedBox(height: 40),
 

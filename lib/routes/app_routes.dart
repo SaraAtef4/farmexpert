@@ -1,3 +1,7 @@
+import 'package:farmxpert/features/milk_production/screens/milk_prpduction.dart';
+import 'package:farmxpert/features/milk_production/screens/daily_records/today_milk_screen.dart';
+import 'package:farmxpert/features/reminders/screens/reminder_screen.dart';
+import 'package:farmxpert/features/workers/screens/workers_screen.dart';
 import 'package:flutter/material.dart';
 import '../features/authentication/screens/forget_password_email_screen.dart';
 import '../features/authentication/screens/login_screen.dart';
@@ -12,6 +16,12 @@ class AppRoutes {
   static const String chooseRole = '/choose-role';
   static const String forgetPassword = '/forget-password';
   static const String home = '/home';
+  static const String milkProduction = '/milk-production';
+  static const String workers = '/workers';
+  static const String reminders = '/reminders';
+  static const String test = '/test';
+  static const String todayMilk = '/todayMilk';
+
 
 
 
@@ -28,6 +38,18 @@ class AppRoutes {
     
       case home:
         return MaterialPageRoute(builder: (_) => HomeScreen());
+      case milkProduction:
+        return MaterialPageRoute(builder: (_) => MilkProductionScreen());
+        case workers:
+        return MaterialPageRoute(builder: (_) => WorkersScreen());
+      case reminders:
+        return MaterialPageRoute(builder: (_) => ReminderScreen());
+
+        case test:
+        return MaterialPageRoute(builder: (_) => TodayMilkScreen());
+        case todayMilk:
+        return MaterialPageRoute(builder: (_) => TodayMilkScreen());
+
 
       default:
         return MaterialPageRoute(

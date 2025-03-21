@@ -22,7 +22,7 @@ class _LoginFormState extends State<LoginForm> {
       key: widget.formKey,  // <-- Using passed formKey
       child: Column(
         children: [
-          CostumizedLabel(text: 'Email'),
+          CustomLabel(text: 'Email'),
           CostumizedTextFormField(
             hintText: 'Enter your Email',
             keyboardType: TextInputType.emailAddress,
@@ -44,7 +44,7 @@ class _LoginFormState extends State<LoginForm> {
             },
           ),
           SizedBox(height: 25),
-          CostumizedLabel(text: 'Password'),
+          CustomLabel(text: 'Password'),
           CostumizedTextFormField(
             hintText: 'Enter your Password',
             keyboardType: TextInputType.visiblePassword,

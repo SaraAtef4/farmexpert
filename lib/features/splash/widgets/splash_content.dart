@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SplashContent extends StatelessWidget {
   final String imagePath;
@@ -28,8 +29,7 @@ class SplashContent extends StatelessWidget {
           right: 20,
           child: Text(
             text,
-            style: TextStyle(
-              color: Colors.white,
+            style: GoogleFonts.inter(color: Colors.white,
               fontSize: 24,
               fontWeight: FontWeight.bold,
               shadows: [
@@ -38,8 +38,7 @@ class SplashContent extends StatelessWidget {
                   color: Colors.black,
                   offset: Offset(2.0, 2.0),
                 ),
-              ],
-            ),
+              ],),
             textAlign: TextAlign.left,
           ),
         ),
