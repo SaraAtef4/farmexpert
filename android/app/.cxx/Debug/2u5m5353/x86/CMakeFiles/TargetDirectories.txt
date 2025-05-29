@@ -1,0 +1,2 @@
+D:/4th grade/graduation project/farmxpert/android/app/.cxx/Debug/2u5m5353/x86/CMakeFiles/edit_cache.dir
+D:/4th grade/graduation project/farmxpert/android/app/.cxx/Debug/2u5m5353/x86/CMakeFiles/rebuild_cache.dir
