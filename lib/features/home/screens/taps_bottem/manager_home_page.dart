@@ -1,13 +1,16 @@
-
+import 'dart:io';
+import 'package:farmxpert/features/authentication/screens/choose_role_screen.dart';
 import 'package:farmxpert/features/cattle_activity/screens/cattle_activity_screen.dart';
+import 'package:farmxpert/features/chatbot/screens/chat_splash_screen.dart';
+import 'package:farmxpert/features/clinic/clinic_screen.dart';
 import 'package:farmxpert/features/milk_production/screens/milk_prpduction.dart';
-import 'package:farmxpert/features/reminders/screens/reminder_screen.dart';
-import 'package:farmxpert/features/workers/screens/workers_screen.dart';
+import 'package:farmxpert/features/reminders/screens/remeder_home_page.dart';
 import 'package:flutter/material.dart';
-
-import '../../models/home_category_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../../staff/screens/farm_staff_screen.dart';
+import '../../models/manager_home_category_model.dart';
 import '../tabs_category/category_detail_screen.dart';
-import '../tabs_category/home_category_item.dart';
+import '../tabs_category/manager_home_category_item.dart';
 import '../tabs_drwaer/Help_screnn.dart';
 import '../tabs_drwaer/Market_screen.dart';
 import '../tabs_drwaer/Setting Screen.dart';
@@ -15,23 +18,42 @@ import '../tabs_drwaer/rate_us_screen.dart';
 import '../tabs_drwaer/sign_out_screen.dart';
 import 'chat_put_screen.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class ManagerHomePage extends StatefulWidget {
+  const ManagerHomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<ManagerHomePage> createState() => _ManagerHomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _ManagerHomePageState extends State<ManagerHomePage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  var categories = HomeCategoryModel.getCategories();
+  var categories = ManagerHomeCategoryModel.getCategories();
+
+  String? userName;
+  String? userImage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  // تحميل بيانات المستخدم من SharedPreferences
+  _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userName = prefs.getString('user_name') ?? 'User Name'; // الاسم الافتراضي
+      userImage = prefs.getString('user_image') ??
+          'assets/images/user_profiel.png'; // الصورة الافتراضية
+    });
+  }
+
   List<Widget> categories_tabs = [
     CattleActivityScreen(),
     MilkProductionScreen(),
-    WorkersScreen(),
-    ReminderScreen(),
-
-
+    FarmStaffScreen(),
+    RemederHomePage(),
+    ClinicScreen(),
   ];
 
   @override
@@ -72,19 +94,21 @@ class _HomePageState extends State<HomePage> {
           ),
           child: Column(
             children: [
-              const DrawerHeader(
+              DrawerHeader(
                 decoration: BoxDecoration(color: Colors.transparent),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CircleAvatar(
                       radius: 50,
-                      backgroundImage:
-                          AssetImage("assets/images/image_user.png"),
+                      backgroundImage: userImage != null
+                          ? FileImage(File(userImage!))
+                          : AssetImage('assets/images/user_profiel.png')
+                              as ImageProvider,
                     ),
                     SizedBox(height: 10),
                     Text(
-                      "User Name",
+                      userName ?? "User Name",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -106,9 +130,16 @@ class _HomePageState extends State<HomePage> {
                     divider(),
                     drawerItem(
                         Icons.settings, "Settings", context, SettingScreen()),
-                    divider(),
-                    drawerItem(
-                        Icons.logout, "Sign Out", context, SignOutScreen()),
+                    ListTile(
+                      leading: const Icon(Icons.logout),
+                      title: const Text("Sign Out"),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () {
+                        showSignOutBottomSheet(context);
+                      },
+                    ),
+
+
                     divider(),
                     drawerItem(Icons.star, "Rate Us", context, RateUsScreen()),
                   ],
@@ -156,8 +187,8 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                 );
                               },
-                              child: HomeCatigoryItem(
-                                  homeCategoryModel: categories[index]),
+                              child: ManagerHomeCatigoryItem(
+                                  managerHomeCategoryModel: categories[index]),
                             );
                           },
                         ),
@@ -172,13 +203,12 @@ class _HomePageState extends State<HomePage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) =>
-                                        ReminderScreen(),
+                                      builder: (context) => categories_tabs.last,
                                     ),
                                   );
                                 },
-                                child: HomeCatigoryItem(
-                                    homeCategoryModel: categories.last),
+                                child: ManagerHomeCatigoryItem(
+                                    managerHomeCategoryModel: categories.last),
                               ),
                             ),
                           ),
@@ -196,7 +226,7 @@ class _HomePageState extends State<HomePage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ChatPutScreen(),
+              builder: (context) => ChatBotSplashScreen(),
             ),
           );
         },
@@ -210,6 +240,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+// الدالة لإضافة العناصر في الـ Drawer
   Widget drawerItem(
       IconData icon, String title, BuildContext context, Widget screen) {
     return ListTile(
@@ -219,14 +250,77 @@ class _HomePageState extends State<HomePage> {
       trailing: const Icon(Icons.arrow_forward_ios,
           size: 20, color: Color(0xff979797)),
       onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => screen),
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (context) => screen));
+      },
+    );
+  }
+
+  // دالة للفاصل بين العناصر في الـ Drawer
+  Widget divider() {
+    return const Divider(thickness: 1, color: Color(0xff979797));
+  }
+
+  void showSignOutBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "هل تريد تسجيل الخروج؟",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.clear(); // مسح بيانات المستخدم
+
+                      // أغلق الـ BottomSheet
+                      Navigator.pop(context);
+
+                      // وروح لـ ChooseRoleScreen
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>  ChooseRoleScreen(),
+                        ),
+                            (route) => false,
+                      );
+                    },
+                    icon: const Icon(Icons.check),
+                    label: const Text("نعم"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context); // قفل BottomSheet
+                    },
+                    icon: const Icon(Icons.close),
+                    label: const Text("لا"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         );
       },
     );
   }
 
-  Widget divider() {
-    return const Divider(thickness: 1, color: Color(0xff979797));
-  }
 }

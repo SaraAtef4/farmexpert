@@ -69,4 +69,61 @@ class CattleProvider with ChangeNotifier {
     notifyListeners();
     saveData();
   }
+
+
+
+  List<String> getAllTags() {
+    List<String> allTags = [];
+
+    _cattleData.forEach((category, cattleList) {
+      for (var cattle in cattleList) {
+        if (cattle.containsKey("id") && cattle["id"] != null) {
+          String tag = cattle["id"].toString();
+          if (!allTags.contains(tag)) {
+            allTags.add(tag);
+          }
+        }
+      }
+    });
+
+    allTags.sort();
+    return allTags;
+  }
+
+  List<Map<String, dynamic>> getFemaleCattle() {
+    List<Map<String, dynamic>> femaleCattle = [];
+
+    final femaleOnlyCategories = ["Cows", "Heifers"];
+
+    for (var category in femaleOnlyCategories) {
+      if (_cattleData.containsKey(category)) {
+        femaleCattle.addAll(_cattleData[category] ?? []);
+      }
+    }
+
+    final mixedCategories = ["Calves", "Weaners", "Sheep"];
+
+    for (var category in mixedCategories) {
+      if (_cattleData.containsKey(category)) {
+        for (var animal in _cattleData[category] ?? []) {
+          if (animal.containsKey("gender") &&
+              (animal["gender"].toString().toLowerCase() == "female" ||
+                  animal["gender"] == "أنثى")) {
+            femaleCattle.add(animal);
+          }
+        }
+      }
+    }
+
+    return femaleCattle;
+  }
+
+  List<String> getFemaleTagsOnly() {
+    return _cattleData.entries
+        .expand((entry) => entry.value)
+        .where((cattle) => cattle["gender"]?.toString().toLowerCase() == "female")
+        .map((cattle) => cattle["id"].toString())
+        .toList();
+  }
+
 }

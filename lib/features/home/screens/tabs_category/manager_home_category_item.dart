@@ -2,14 +2,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 
-import '../../models/home_category_model.dart';
+import '../../models/manager_home_category_model.dart';
 
-class HomeCatigoryItem extends StatelessWidget {
-  final HomeCategoryModel homeCategoryModel;
+class ManagerHomeCatigoryItem extends StatelessWidget {
+  final ManagerHomeCategoryModel managerHomeCategoryModel;
   final bool isFullWidth;
 
-  HomeCatigoryItem(
-      {required this.homeCategoryModel, this.isFullWidth = false, super.key});
+  ManagerHomeCatigoryItem(
+      {required this.managerHomeCategoryModel,
+      this.isFullWidth = false,
+      super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +23,7 @@ class HomeCatigoryItem extends StatelessWidget {
         return Container(
           height: height,
           decoration: BoxDecoration(
-            color: homeCategoryModel.color,
+            color: managerHomeCategoryModel.color,
             borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
@@ -37,10 +39,10 @@ class HomeCatigoryItem extends StatelessWidget {
             children: [
               Expanded(
                   child: Image.asset(
-                homeCategoryModel.image,
+                managerHomeCategoryModel.image,
               )),
               Text(
-                homeCategoryModel.name,
+                managerHomeCategoryModel.name,
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,

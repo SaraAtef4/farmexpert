@@ -1,8 +1,9 @@
 import 'dart:io';
-
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:farmxpert/core/theme/app_theme.dart';
 import 'package:farmxpert/data/providers/cattle_provider.dart';
+import 'package:farmxpert/features/reminders/screens/background_service.dart';
+import 'package:farmxpert/features/reminders/screens/notification_service.dart';
 import 'package:farmxpert/routes/app_routes.dart';
 import 'package:farmxpert/data/providers/milk_provider.dart';
 import 'package:flutter/material.dart';
@@ -17,18 +18,16 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:workmanager/workmanager.dart';
 
 import 'data/providers/cattle_events_provider.dart';
-import 'features/reminders/models/reminder_model.dart';
+import 'data/providers/staff_provider.dart';
 import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final appDocumentDir = await getApplicationDocumentsDirectory();
-  Hive.init(appDocumentDir.path);
-  Hive.registerAdapter(ReminderAdapter());
-  await Hive.openBox<Reminder>('reminders');
+
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -36,37 +35,69 @@ void main() async {
 
   final prefs = await SharedPreferences.getInstance();
 
-  tz.initializeTimeZones();
-  tz.setLocalLocation(tz.getLocation('Africa/Cairo'));
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   tz.initializeTimeZones();
-  // await AndroidAlarmManager.initialize();
+  await AndroidAlarmManager.initialize();
 
   // ✅ إلغاء جميع المهام المجدولة عند تشغيل التطبيق لمنع التكرار
-  // await Workmanager().cancelAll();
+  await Workmanager().cancelAll();
 
-  // await requestNotificationPermissions();
-  // await requestExactAlarmPermission();
-  // await NotificationService.init();
+  await requestNotificationPermissions();
+  await requestExactAlarmPermission();
+  await NotificationService.init();
 
   // ✅ تهيئة WorkManager لمرة واحدة فقط
-  // await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
+  await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
+
 
   runApp(MyApp(prefs: prefs));
 }
 
+
 // /// ✅ طلب إذن الإشعارات (لنظام Android 13+)
-// Future<void> requestNotificationPermissions() async {
-//   if (Platform.isAndroid && await Permission.notification.isDenied) {
-//     await Permission.notification.request();
-//   }
-// }
-//
+Future<void> requestNotificationPermissions() async {
+  if (Platform.isAndroid && await Permission.notification.isDenied) {
+    await Permission.notification.request();
+  }
+}
+
 // /// ✅ طلب إذن "Exact Alarm" (لنظام Android 12+)
-// Future<void> requestExactAlarmPermission() async {
-//   if (Platform.isAndroid && await Permission.scheduleExactAlarm.isDenied) {
-//     await Permission.scheduleExactAlarm.request();
+Future<void> requestExactAlarmPermission() async {
+  if (Platform.isAndroid && await Permission.scheduleExactAlarm.isDenied) {
+    await Permission.scheduleExactAlarm.request();
+  }
+}
+
+
+// class MyApp extends StatelessWidget {
+//   final SharedPreferences prefs;
+//
+//   const MyApp({Key? key, required this.prefs}) : super(key: key);
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return MultiProvider(
+//       providers: [
+//         ChangeNotifierProvider(create: (_) => SplashProvider()),
+//         ChangeNotifierProvider(create: (context) => AuthProvider()
+//         ),
+//
+//         ChangeNotifierProvider(
+//             create: (context) =>
+//                 MilkProvider(prefs)), // تمرير SharedPreferences
+//         ChangeNotifierProvider(create: (_) => CattleEventsProvider()),
+//         ChangeNotifierProvider(create: (_) => CattleProvider()),
+//         ChangeNotifierProvider(create: (_) => VeterinarianProvider()),
+//         ChangeNotifierProvider(create: (_) => WorkerProvider()),
+//       ],
+//       child: MaterialApp(
+//         debugShowCheckedModeBanner: false,
+//         initialRoute: AppRoutes.splash,
+//         onGenerateRoute: AppRoutes.generateRoute,
+//         theme: MyThemeData.lightMode,
+//       ),
+//     );
 //   }
 // }
 
@@ -77,21 +108,41 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String? token = prefs.getString('auth_token');
+    String? role = prefs.getString('user_role');
+
+    String initialRoute;
+
+    if (token != null && role != null) {
+      if (role == 'manager') {
+        initialRoute = '/manager-home';
+      } else if (role == 'worker') {
+        initialRoute = '/worker-home';
+      } else {
+        initialRoute = AppRoutes.chooseRole; // تم التعديل هنا
+      }
+    } else {
+      initialRoute = AppRoutes.chooseRole; // وتم التعديل هنا
+    }
+
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => SplashProvider()),
-        ChangeNotifierProvider(create: (context) => AuthProvider()),
-
-        ChangeNotifierProvider(create: (context) => MilkProvider(prefs)), // تمرير SharedPreferences
+        // ❌ احذف AuthProvider إذا كنت لا تستخدم Firebase
+        ChangeNotifierProvider(create: (context) => MilkProvider(prefs)),
         ChangeNotifierProvider(create: (_) => CattleEventsProvider()),
-        ChangeNotifierProvider(create: (_) =>CattleProvider()),
+        ChangeNotifierProvider(create: (_) => CattleProvider()),
+        ChangeNotifierProvider(create: (_) => VeterinarianProvider()),
+        ChangeNotifierProvider(create: (_) => WorkerProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        initialRoute: AppRoutes.home,
+        initialRoute: initialRoute,
         onGenerateRoute: AppRoutes.generateRoute,
         theme: MyThemeData.lightMode,
       ),
     );
   }
 }
+

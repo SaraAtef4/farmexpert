@@ -1,12 +1,17 @@
 import 'package:farmxpert/core/theme/colors.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class CustomButton extends StatelessWidget {
   final String text;
   final VoidCallback ontap;
+  final TextStyle? style;
 
-  CustomButton({required this.text, required this.ontap});
+  const CustomButton({
+    Key? key,
+    required this.text,
+    required this.ontap,
+    this.style,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -23,11 +28,10 @@ class CustomButton extends StatelessWidget {
           alignment: Alignment.center,
           child: Text(
             text,
-            style: TextStyle(
-              fontFamily: "Inter",
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
+            style: style ?? Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: Colors.white, // لون النص أبيض
+              fontWeight: FontWeight.w700, // سماكة الخط
+              fontSize: 20
             ),
           ),
         ),

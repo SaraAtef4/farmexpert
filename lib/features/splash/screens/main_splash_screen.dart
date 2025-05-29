@@ -18,7 +18,7 @@ class MainSplashScreen extends StatelessWidget {
           // الصورة الخلفية تغطي الشاشة
           Positioned.fill(
             child: Image.asset(
-              'assets/images/spalsh_1.PNG', // تأكد من صحة المسار
+              'assets/images/splash0.jpg', // تأكد من صحة المسار
               fit: BoxFit.cover,
             ),
           ),
@@ -31,18 +31,24 @@ class MainSplashScreen extends StatelessWidget {
                     .updatePage(index);
               },
               children: [
-                // أضف شاشات السلايد هنا
+                // الصفحة الأولى
                 SplashContent(
-                  imagePath: 'assets/images/spalsh_1.PNG',
-                  text: 'Welcome to FarmXpert\nSmart farming starts here!',
+                  imagePath: 'assets/images/splash0.jpg',
+                  text: 'Welcome To \n FarmXpert',
+                  isFirstPage: true, // تفعيل التنسيق الخاص
+                  customText: 'The Best App For Manage Your Farm', // النص الإضافي
                 ),
+                // الصفحة الثانية
                 SplashContent(
-                  imagePath: 'assets/images/splach_2.PNG',
+                  imagePath: 'assets/images/splash8.jpg',
                   text: 'Track. Manage. Grow',
+                  isSecondPage: true, // تفعيل التنسيق الخاص
                 ),
+                // الصفحة الثالثة
                 SplashContent(
-                  imagePath: 'assets/images/splash_3.PNG',
-                  text: 'All-in-one app for your farm!',
+                  imagePath: 'assets/images/splash9.jpg',
+                  text: "Let's boost your farm productivity.",
+                  isThirdPage: true, // تفعيل التنسيق الخاص
                 ),
               ],
             ),
@@ -67,10 +73,13 @@ class MainSplashScreen extends StatelessWidget {
                 SizedBox(height: 16),
                 CustomButton(
                   text:
-                    Provider.of<SplashProvider>(context).currentPage == 2
-                        ? 'Get Started'
-                        : 'Continue',
-
+                  Provider.of<SplashProvider>(context).currentPage == 2
+                      ? 'Get Started'
+                      : 'Continue',
+                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: Colors.white, // لون النص أبيض
+                    fontWeight: FontWeight.bold,
+                  ),
                   ontap: () {
                     final currentPage =
                         Provider.of<SplashProvider>(context, listen: false).currentPage;
