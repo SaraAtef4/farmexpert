@@ -217,6 +217,46 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
 
+  // Future<void> _login() async {
+  //   if (_formKey.currentState?.validate() ?? false) {
+  //     setState(() => _isLoading = true);
+  //
+  //     final authResponse = await apiManager.loginUser(
+  //       _emailController.text,
+  //       _passwordController.text,
+  //     );
+  //
+  //     setState(() => _isLoading = false);
+  //
+  //     if (authResponse != null && authResponse.token != null) {
+  //       String token = authResponse.token!;
+  //
+  //       final prefs = await SharedPreferences.getInstance();
+  //       await prefs.setString('token', token);
+  //       await prefs.setBool('remember_me', _isRememberMeChecked);
+  //       await prefs.setString('user_role', widget.role); // حفظ الدور
+  //
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text("تم تسجيل الدخول بنجاح!")),
+  //       );
+  //
+  //       // التوجيه حسب الدور
+  //       if (widget.role == 'manager') {
+  //         Navigator.pushReplacementNamed(context, '/manager-home');
+  //       } else if (widget.role == 'worker') {
+  //         Navigator.pushReplacementNamed(context, '/worker-home');
+  //       }
+  //       // else {
+  //       //   Navigator.pushReplacementNamed(context, '/home');
+  //       // }
+  //     } else {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text("خطأ في البريد الإلكتروني أو كلمة المرور")),
+  //       );
+  //     }
+  //   }
+  // }
+
   Future<void> _login() async {
     if (_formKey.currentState?.validate() ?? false) {
       setState(() => _isLoading = true);
@@ -230,25 +270,41 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (authResponse != null && authResponse.token != null) {
         String token = authResponse.token!;
+        String? serverRole = authResponse.role;
+        print("✅ Extracted Role from Token: $serverRole"); // الدور من السيرفر
+        String selectedRole = widget.role; // الدور اللي المستخدم اختاره من الشاشة السابقة
 
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('auth_token', token);
-        await prefs.setBool('remember_me', _isRememberMeChecked);
-        await prefs.setString('user_role', widget.role); // حفظ الدور
+        if (serverRole != null && serverRole.toLowerCase() == selectedRole.toLowerCase()) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('token', token);
+          await prefs.setBool('remember_me', _isRememberMeChecked);
+          await prefs.setString('user_role', serverRole); // نحفظ الدور الحقيقي من السيرفر
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("تم تسجيل الدخول بنجاح!")),
-        );
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("تم تسجيل الدخول بنجاح!")),
+          );
 
-        // التوجيه حسب الدور
-        if (widget.role == 'manager') {
-          Navigator.pushReplacementNamed(context, '/manager-home');
-        } else if (widget.role == 'worker') {
-          Navigator.pushReplacementNamed(context, '/worker-home');
+          await Future.delayed(Duration(milliseconds: 300));
+
+
+          // توجيه حسب الدور الحقيقي
+          if (serverRole.toLowerCase() == 'manager') {
+            print("serverRole $serverRole");
+
+            Navigator.pushReplacementNamed(context, '/manager-home');
+          } else if (serverRole.toLowerCase() == 'worker') {
+            print("serverRole $serverRole");
+            Navigator.pushReplacementNamed(context, '/worker-home');
+          }
+        } else {
+          // الدور لا يطابق ما تم اختياره
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("⚠️ الدور المختار لا يطابق الحساب المُسجل به!"),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
-        // else {
-        //   Navigator.pushReplacementNamed(context, '/home');
-        // }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("خطأ في البريد الإلكتروني أو كلمة المرور")),
@@ -256,6 +312,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

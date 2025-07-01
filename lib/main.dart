@@ -34,6 +34,7 @@ void main() async {
   );
 
   final prefs = await SharedPreferences.getInstance();
+  bool isFirstTime = prefs.getBool('isFirstTime') ?? true;
 
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -51,7 +52,7 @@ void main() async {
   await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
 
 
-  runApp(MyApp(prefs: prefs));
+  runApp(MyApp(prefs: prefs, isFirstTime: isFirstTime));
 }
 
 
@@ -70,61 +71,34 @@ Future<void> requestExactAlarmPermission() async {
 }
 
 
-// class MyApp extends StatelessWidget {
-//   final SharedPreferences prefs;
-//
-//   const MyApp({Key? key, required this.prefs}) : super(key: key);
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return MultiProvider(
-//       providers: [
-//         ChangeNotifierProvider(create: (_) => SplashProvider()),
-//         ChangeNotifierProvider(create: (context) => AuthProvider()
-//         ),
-//
-//         ChangeNotifierProvider(
-//             create: (context) =>
-//                 MilkProvider(prefs)), // تمرير SharedPreferences
-//         ChangeNotifierProvider(create: (_) => CattleEventsProvider()),
-//         ChangeNotifierProvider(create: (_) => CattleProvider()),
-//         ChangeNotifierProvider(create: (_) => VeterinarianProvider()),
-//         ChangeNotifierProvider(create: (_) => WorkerProvider()),
-//       ],
-//       child: MaterialApp(
-//         debugShowCheckedModeBanner: false,
-//         initialRoute: AppRoutes.splash,
-//         onGenerateRoute: AppRoutes.generateRoute,
-//         theme: MyThemeData.lightMode,
-//       ),
-//     );
-//   }
-// }
-
 class MyApp extends StatelessWidget {
   final SharedPreferences prefs;
+  final bool isFirstTime;
 
-  const MyApp({Key? key, required this.prefs}) : super(key: key);
+  const MyApp({Key? key, required this.prefs,required this.isFirstTime}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    String? token = prefs.getString('auth_token');
-    String? role = prefs.getString('user_role');
-
     String initialRoute;
 
-    if (token != null && role != null) {
-      if (role == 'manager') {
-        initialRoute = '/manager-home';
-      } else if (role == 'worker') {
-        initialRoute = '/worker-home';
-      } else {
-        initialRoute = AppRoutes.chooseRole; // تم التعديل هنا
-      }
+    if (isFirstTime) {
+      initialRoute = AppRoutes.splash;
     } else {
-      initialRoute = AppRoutes.chooseRole; // وتم التعديل هنا
-    }
+      String? token = prefs.getString('token');
+      String? role = prefs.getString('user_role');
 
+      if (token != null && role != null) {
+        if (role == 'manager') {
+          initialRoute = AppRoutes.managerHome;
+        } else if (role == 'worker') {
+          initialRoute = AppRoutes.workerHome;
+        } else {
+          initialRoute = AppRoutes.chooseRole;
+        }
+      } else {
+        initialRoute = AppRoutes.chooseRole;
+      }
+    }
 
     return MultiProvider(
       providers: [

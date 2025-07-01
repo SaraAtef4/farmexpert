@@ -67,7 +67,7 @@ class GetAllResponse {
   String? experience;
   String? specialty;
   String? phone;
-  int? salary;
+  double? salary;
   String? code;
   String? createdAt;
   String? email;
@@ -97,7 +97,7 @@ class GetAllResponse {
     experience = json['experience'];
     specialty = json['specialty'];
     phone = json['phone'];
-    salary = _parseInt(json['salary']);
+    salary = _parseDouble(json['salary']);
     code = json['code'];
     createdAt = json['createdAt'];
     email = json['email'];
@@ -127,5 +127,12 @@ class GetAllResponse {
     if (value == null) return null;
     if (value is int) return value;
     return int.tryParse(value.toString());
+  }
+
+  double? _parseDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    return double.tryParse(value.toString());
   }
 }

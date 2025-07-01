@@ -1,36 +1,4 @@
-// class AddWorkerResponse {
-//   final int id;
-//   final String name;
-//   final String email;
-//   final String phone;
-//   final String specialty;
-//   final String nationalID;
-//   final String? imagePath;
-//
-//   AddWorkerResponse({
-//     required this.id,
-//     required this.name,
-//     required this.email,
-//     required this.phone,
-//     required this.specialty,
-//     required this.nationalID,
-//     this.imagePath,
-//   });
-//
-//   factory AddWorkerResponse.fromJson(Map<String, dynamic> json) {
-//     return AddWorkerResponse(
-//       id: json['id'],
-//       name: json['name'],
-//       email: json['email'],
-//       phone: json['phone'],
-//       specialty: json['specialty'],
-//       nationalID: json['nationalID'],
-//       imagePath: json['imagePath'],
-//     );
-//   }
-// }
-
-class AddWorkerResponse {
+class AddVeterinairsResponse {
   final int? id;
   final String name;
   final String email;
@@ -42,7 +10,7 @@ class AddWorkerResponse {
   final int? experience;
   final double? salary;
 
-  AddWorkerResponse({
+  AddVeterinairsResponse({
     required this.id,
     required this.name,
     required this.email,
@@ -55,8 +23,8 @@ class AddWorkerResponse {
     this.salary,
   });
 
-  factory AddWorkerResponse.fromJson(Map<String, dynamic> json) {
-    return AddWorkerResponse(
+  factory AddVeterinairsResponse.fromJson(Map<String, dynamic> json) {
+    return AddVeterinairsResponse(
       id: json['id'] != null ? json['id'] as int : null,
       name: json['name'] ?? "",
       email: json['email'] ?? "",

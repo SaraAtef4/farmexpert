@@ -11,10 +11,12 @@ class CattleAddScreen extends StatefulWidget {
 class _CattleAddScreenState extends State<CattleAddScreen> {
   // Controllers
   final TextEditingController _tagNumberController = TextEditingController();
-  final TextEditingController _sourceDetailsController = TextEditingController();
+  final TextEditingController _sourceDetailsController =
+      TextEditingController();
   final TextEditingController _weightController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
-  final TextEditingController _farmEntryDateController = TextEditingController();
+  final TextEditingController _farmEntryDateController =
+      TextEditingController();
   final TextEditingController _motherTagController = TextEditingController();
   final TextEditingController _fatherTagController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
@@ -50,7 +52,8 @@ class _CattleAddScreenState extends State<CattleAddScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Gender Selection (Required)
-            const Text('Select Gender', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Select Gender',
+                style: TextStyle(fontWeight: FontWeight.bold)),
             Row(
               children: [
                 Radio<String>(
@@ -98,14 +101,15 @@ class _CattleAddScreenState extends State<CattleAddScreen> {
               value: _selectedSource,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               ),
               hint: const Text('Select Source'),
               items: ['Born on Farm', 'Purchase', 'Other']
                   .map((source) => DropdownMenuItem(
-                value: source,
-                child: Text(source),
-              ))
+                        value: source,
+                        child: Text(source),
+                      ))
                   .toList(),
               onChanged: (value) {
                 setState(() {
@@ -113,7 +117,8 @@ class _CattleAddScreenState extends State<CattleAddScreen> {
                   _isOtherSource = value == 'Other';
                 });
               },
-              validator: (value) => value == null ? 'Please select a source' : null,
+              validator: (value) =>
+                  value == null ? 'Please select a source' : null,
             ),
 
             // Conditional Other Source Details
@@ -131,7 +136,8 @@ class _CattleAddScreenState extends State<CattleAddScreen> {
             const SizedBox(height: 16),
 
             // Breed Selection (Optional)
-            const Text('Breed (Optional)', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Breed (Optional)',
+                style: TextStyle(fontWeight: FontWeight.bold)),
             ElevatedButton(
               onPressed: () {
                 // TODO: Navigate to Breed Selection Screen
@@ -142,104 +148,122 @@ class _CattleAddScreenState extends State<CattleAddScreen> {
 
             // Stage Selection based on Gender
             if (_selectedGender == 'Male') ...[
-              const Text('Male Cattle Stage', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('Male Cattle Stage',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               DropdownButtonFormField<String>(
                 value: _maleCattleStage,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 ),
                 hint: const Text('Select Stage'),
                 items: ['Calf', 'Weaner', 'Steer', 'Bull']
                     .map((stage) => DropdownMenuItem(
-                  value: stage,
-                  child: Text(stage),
-                ))
+                          value: stage,
+                          child: Text(stage),
+                        ))
                     .toList(),
                 onChanged: (value) {
                   setState(() {
                     _maleCattleStage = value;
                   });
                 },
-                validator: (value) => value == null ? 'Please select a stage' : null,
+                validator: (value) =>
+                    value == null ? 'Please select a stage' : null,
               ),
             ],
 
             if (_selectedGender == 'Female') ...[
-              const Text('Female Cattle Stage', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('Female Cattle Stage',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               DropdownButtonFormField<String>(
                 value: _femaleCattleStage,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 ),
                 hint: const Text('Select Stage'),
                 items: ['Calf', 'Weaner', 'Heifer', 'Cow']
                     .map((stage) => DropdownMenuItem(
-                  value: stage,
-                  child: Text(stage),
-                ))
+                          value: stage,
+                          child: Text(stage),
+                        ))
                     .toList(),
                 onChanged: (value) {
                   setState(() {
                     _femaleCattleStage = value;
                   });
                 },
-                validator: (value) => value == null ? 'Please select a stage' : null,
+                validator: (value) =>
+                    value == null ? 'Please select a stage' : null,
               ),
               const SizedBox(height: 16),
 
               // Reproductive Status for Females
-              const Text('Reproductive Status', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('Reproductive Status',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               DropdownButtonFormField<String>(
                 value: _femaleReproductiveStatus,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 ),
                 hint: const Text('Select Status'),
-                items: ['Pregnant', 'Lactating', 'Non-Lactating', 'Lactating & Pregnant']
+                items: [
+                  'Pregnant',
+                  'Lactating',
+                  'Non-Lactating',
+                  'Lactating & Pregnant'
+                ]
                     .map((status) => DropdownMenuItem(
-                  value: status,
-                  child: Text(status),
-                ))
+                          value: status,
+                          child: Text(status),
+                        ))
                     .toList(),
                 onChanged: (value) {
                   setState(() {
                     _femaleReproductiveStatus = value;
                   });
                 },
-                validator: (value) => value == null ? 'Please select a status' : null,
+                validator: (value) =>
+                    value == null ? 'Please select a status' : null,
               ),
               const SizedBox(height: 16),
 
               // General Status for Females
-              const Text('General Status', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('General Status',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               DropdownButtonFormField<String>(
                 value: _femaleGeneralStatus,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 ),
                 hint: const Text('Select Status'),
                 items: ['Milking Cow', 'Dry', 'Barren', 'Anoestrus']
                     .map((status) => DropdownMenuItem(
-                  value: status,
-                  child: Text(status),
-                ))
+                          value: status,
+                          child: Text(status),
+                        ))
                     .toList(),
                 onChanged: (value) {
                   setState(() {
                     _femaleGeneralStatus = value;
                   });
                 },
-                validator: (value) => value == null ? 'Please select a status' : null,
+                validator: (value) =>
+                    value == null ? 'Please select a status' : null,
               ),
             ],
 
             // Optional Fields
             const SizedBox(height: 16),
-            const Text('Optional Information', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Optional Information',
+                style: TextStyle(fontWeight: FontWeight.bold)),
 
             // Weight
             MilkTextField(
@@ -290,7 +314,8 @@ class _CattleAddScreenState extends State<CattleAddScreen> {
                   lastDate: DateTime.now(),
                 );
                 if (pickedDate != null) {
-                  _farmEntryDateController.text = pickedDate.toString().split(' ')[0];
+                  _farmEntryDateController.text =
+                      pickedDate.toString().split(' ')[0];
                 }
               },
             ),
@@ -419,7 +444,8 @@ class _CattleAddScreenState extends State<CattleAddScreen> {
       'source': _selectedSource,
       'sourceDetails': _isOtherSource ? _sourceDetailsController.text : null,
       'breed': _selectedBreed,
-      'stage': _selectedGender == 'Male' ? _maleCattleStage : _femaleCattleStage,
+      'stage':
+          _selectedGender == 'Male' ? _maleCattleStage : _femaleCattleStage,
       'reproductiveStatus': _femaleReproductiveStatus,
       'generalStatus': _femaleGeneralStatus,
       'weight': _weightController.text,

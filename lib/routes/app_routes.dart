@@ -40,22 +40,13 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => ChooseRoleScreen());
       case forgetPassword:
         return MaterialPageRoute(builder: (_) => ForgetPasswordScreen());
-      //
-      // case managerHome:
-      //   return MaterialPageRoute(builder: (_) => ManagerHomePage());
-      // case workerHome:
-      //   return MaterialPageRoute(builder: (_) => WorkerHomePage()); // لو موجودة عندك
 
       case managerHome:
         return MaterialPageRoute(
             builder: (_) => const HomeScreen(userType: 'manager'));
       case workerHome:
         return MaterialPageRoute(
-            builder: (_) => const HomeScreen(userType: 'worker'));
-
-      // case managerHome:
-      // case workerHome:
-      //   return MaterialPageRoute(builder: (_) => const HomeScreen());
+            builder: (_) =>  HomeScreen(userType: 'worker'));
 
       case milkProduction:
         return MaterialPageRoute(builder: (_) => MilkProductionScreen());

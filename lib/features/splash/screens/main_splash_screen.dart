@@ -2,6 +2,7 @@ import 'package:farmxpert/core/theme/colors.dart';
 import 'package:farmxpert/features/splash/widgets/splash_content.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../../../core/widgets/custtom_buttom.dart';
 import '../../../routes/app_routes.dart';
@@ -80,10 +81,25 @@ class MainSplashScreen extends StatelessWidget {
                     color: Colors.white, // لون النص أبيض
                     fontWeight: FontWeight.bold,
                   ),
-                  ontap: () {
-                    final currentPage =
-                        Provider.of<SplashProvider>(context, listen: false).currentPage;
+                  // ontap: () {
+                  //   final currentPage =
+                  //       Provider.of<SplashProvider>(context, listen: false).currentPage;
+                  //   if (currentPage == 2) {
+                  //     Navigator.pushReplacementNamed(context, AppRoutes.chooseRole);
+                  //   } else {
+                  //     _pageController.nextPage(
+                  //       duration: Duration(milliseconds: 300),
+                  //       curve: Curves.easeInOut,
+                  //     );
+                  //   }
+                  // },
+                  ontap: () async {
+                    final currentPage = Provider.of<SplashProvider>(context, listen: false).currentPage;
+
                     if (currentPage == 2) {
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setBool('isFirstTime', false);
+
                       Navigator.pushReplacementNamed(context, AppRoutes.chooseRole);
                     } else {
                       _pageController.nextPage(
@@ -92,6 +108,7 @@ class MainSplashScreen extends StatelessWidget {
                       );
                     }
                   },
+
                 ),
               ],
             ),

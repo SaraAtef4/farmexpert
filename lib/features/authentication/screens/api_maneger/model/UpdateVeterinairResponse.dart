@@ -1,21 +1,21 @@
-class UpdateWorkerResponse {
+class UpdateVeterinairResponse {
   final String message;
-  final Worker worker;
+  final Veterinair veterinair;
 
-  UpdateWorkerResponse({
+  UpdateVeterinairResponse({
     required this.message,
-    required this.worker,
+    required this.veterinair,
   });
 
-  factory UpdateWorkerResponse.fromJson(Map<String, dynamic> json) {
-    return UpdateWorkerResponse(
+  factory UpdateVeterinairResponse.fromJson(Map<String, dynamic> json) {
+    return UpdateVeterinairResponse(
       message: json['message'],
-      worker: Worker.fromJson(json['worker']),
+      veterinair: Veterinair.fromJson(json['veterinair']),
     );
   }
 }
 
-class Worker {
+class Veterinair {
   final int id;
   final String name;
   final String specialty;
@@ -25,7 +25,7 @@ class Worker {
   final String? experience;
   final String? imagePath;
 
-  Worker({
+  Veterinair({
     required this.id,
     required this.name,
     required this.specialty,
@@ -36,8 +36,8 @@ class Worker {
     this.imagePath,
   });
 
-  factory Worker.fromJson(Map<String, dynamic> json) {
-    return Worker(
+  factory Veterinair.fromJson(Map<String, dynamic> json) {
+    return Veterinair(
       id: json['id'],
       name: json['name'],
       specialty: json['specialty'],

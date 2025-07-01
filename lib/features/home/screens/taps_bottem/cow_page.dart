@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
-
 import '../../../../data/providers/cattle_provider.dart';
 import '../../../cattle_statistics/screens/cattle_details_screen.dart';
 import '../../models/Cattle_category_model.dart';
 import '../tabs_category/category_detail_screen.dart';
-import '../tabs_category/cattle_category_item.dart';
 
 class CowPage extends StatefulWidget {
   const CowPage({super.key});
@@ -73,19 +71,37 @@ class _CowPageState extends State<CowPage> with SingleTickerProviderStateMixin {
     final screenSize = MediaQuery.of(context).size;
 
     final Map<String, dynamic> cattleData = {
-      "أغنام": {"count": cattleProvider.cattleData["Sheep"]?.length ?? 0, "color": Colors.indigo[300]},
-      "أبقار": {"count": cattleProvider.cattleData["Cows"]?.length ?? 0, "color": Colors.deepOrange[400]},
-      "عجول": {"count": cattleProvider.cattleData["Heifers"]?.length ?? 0, "color": Colors.amber[500]},
-      "ثيران": {"count": cattleProvider.cattleData["Bulls"]?.length ?? 0, "color": Colors.red[700]},
-      "فطائم": {"count": cattleProvider.cattleData["Weaners"]?.length ?? 0, "color": Colors.lightGreen[400]},
-      "عجول صغيرة": {"count": cattleProvider.cattleData["Calves"]?.length ?? 0, "color": Colors.pink[200]},
+      "أغنام": {
+        "count": cattleProvider.cattleData["Sheep"]?.length ?? 0,
+        "color": Colors.indigo[300]
+      },
+      "أبقار": {
+        "count": cattleProvider.cattleData["Cows"]?.length ?? 0,
+        "color": Colors.deepOrange[400]
+      },
+      "عجول": {
+        "count": cattleProvider.cattleData["Heifers"]?.length ?? 0,
+        "color": Colors.amber[500]
+      },
+      "ثيران": {
+        "count": cattleProvider.cattleData["Bulls"]?.length ?? 0,
+        "color": Colors.red[700]
+      },
+      "فطائم": {
+        "count": cattleProvider.cattleData["Weaners"]?.length ?? 0,
+        "color": Colors.lightGreen[400]
+      },
+      "عجول صغيرة": {
+        "count": cattleProvider.cattleData["Calves"]?.length ?? 0,
+        "color": Colors.pink[200]
+      },
     };
 
     return Scaffold(
       appBar: AppBar(
         title: const Text(
           "Cattle Management",
-          style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         centerTitle: true,
         backgroundColor: Colors.green.shade700,
@@ -109,9 +125,7 @@ class _CowPageState extends State<CowPage> with SingleTickerProviderStateMixin {
           children: [
             // خلفية مخصصة
             Container(
-              decoration: BoxDecoration(
-
-              ),
+              decoration: BoxDecoration(),
             ),
             Scrollbar(
               controller: _scrollController,
@@ -140,7 +154,8 @@ class _CowPageState extends State<CowPage> with SingleTickerProviderStateMixin {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
                                         "إحصائيات القطيع",
@@ -152,7 +167,9 @@ class _CowPageState extends State<CowPage> with SingleTickerProviderStateMixin {
                                       ),
                                       IconButton(
                                         icon: Icon(
-                                          _isExpanded ? Icons.expand_less : Icons.expand_more,
+                                          _isExpanded
+                                              ? Icons.expand_less
+                                              : Icons.expand_more,
                                           color: Colors.green.shade700,
                                         ),
                                         onPressed: _toggleExpanded,
@@ -177,7 +194,8 @@ class _CowPageState extends State<CowPage> with SingleTickerProviderStateMixin {
 
                     // عنوان الفئات
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                       child: Row(
                         children: [
                           Icon(Icons.pets, color: Colors.green.shade700),
@@ -224,7 +242,8 @@ class _CowPageState extends State<CowPage> with SingleTickerProviderStateMixin {
                             GridView.builder(
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
                                 crossAxisSpacing: 12,
                                 mainAxisSpacing: 12,
@@ -296,7 +315,8 @@ class _CowPageState extends State<CowPage> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _buildStatsCards(Map<String, dynamic> cattleData, BuildContext context) {
+  Widget _buildStatsCards(
+      Map<String, dynamic> cattleData, BuildContext context) {
     return GridView.builder(
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
@@ -319,6 +339,7 @@ class _CowPageState extends State<CowPage> with SingleTickerProviderStateMixin {
                 builder: (context) => CattleDetailsScreen(
                   category: key,
                   color: entry['color'],
+                  // type: "Cow",
                 ),
               ),
             );
@@ -387,7 +408,8 @@ class _CowPageState extends State<CowPage> with SingleTickerProviderStateMixin {
                       if (pieTouchResponse?.touchedSection == null) {
                         touchedIndex = null;
                       } else {
-                        touchedIndex = pieTouchResponse!.touchedSection!.touchedSectionIndex;
+                        touchedIndex = pieTouchResponse!
+                            .touchedSection!.touchedSectionIndex;
                       }
                     });
                   },
@@ -442,7 +464,8 @@ class _CowPageState extends State<CowPage> with SingleTickerProviderStateMixin {
     );
   }
 
-  List<PieChartSectionData> _buildPieChartSections(Map<String, dynamic> cattleData) {
+  List<PieChartSectionData> _buildPieChartSections(
+      Map<String, dynamic> cattleData) {
     double total = _totalCattle(cattleData);
     if (total == 0) {
       // إذا كان الإجمالي صفرًا، نعرض قسمًا واحدًا فارغًا
@@ -461,69 +484,74 @@ class _CowPageState extends State<CowPage> with SingleTickerProviderStateMixin {
       ];
     }
 
-    return cattleData.entries.map((entry) {
-      final index = cattleData.keys.toList().indexOf(entry.key);
-      final isTouched = index == touchedIndex;
-      final double radius = isTouched ? 120 : 100;
-      final Color baseColor = entry.value['color'];
+    return cattleData.entries
+        .map((entry) {
+          final index = cattleData.keys.toList().indexOf(entry.key);
+          final isTouched = index == touchedIndex;
+          final double radius = isTouched ? 120 : 100;
+          final Color baseColor = entry.value['color'];
 
-      if (entry.value['count'] == 0) {
-        return PieChartSectionData(
-          value: 0,
-          color: Colors.transparent,
-          radius: 0,
-        );
-      }
+          if (entry.value['count'] == 0) {
+            return PieChartSectionData(
+              value: 0,
+              color: Colors.transparent,
+              radius: 0,
+            );
+          }
 
-      return PieChartSectionData(
-        value: entry.value['count'].toDouble(),
-        title: isTouched
-            ? "${(entry.value['count'] / total * 100).toStringAsFixed(1)}%"
-            : "",
-        color: baseColor,
-        radius: radius,
-        titleStyle: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-          shadows: [
-            Shadow(color: Colors.black, blurRadius: 2, offset: Offset(1, 1)),
-          ],
-        ),
-        badgeWidget: isTouched
-            ? Container(
-          padding: EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 4,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Text(
-            entry.key,
-            style: TextStyle(
-              fontSize: 10,
+          return PieChartSectionData(
+            value: entry.value['count'].toDouble(),
+            title: isTouched
+                ? "${(entry.value['count'] / total * 100).toStringAsFixed(1)}%"
+                : "",
+            color: baseColor,
+            radius: radius,
+            titleStyle: TextStyle(
+              fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: baseColor,
+              color: Colors.white,
+              shadows: [
+                Shadow(
+                    color: Colors.black, blurRadius: 2, offset: Offset(1, 1)),
+              ],
             ),
-          ),
-        )
-            : null,
-        badgePositionPercentageOffset: 1.1,
-      );
-    }).where((section) => section.value > 0).toList();
+            badgeWidget: isTouched
+                ? Container(
+                    padding: EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      entry.key,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: baseColor,
+                      ),
+                    ),
+                  )
+                : null,
+            badgePositionPercentageOffset: 1.1,
+          );
+        })
+        .where((section) => section.value > 0)
+        .toList();
   }
 
   double _totalCattle(Map<String, dynamic> cattleData) {
     return cattleData.values.fold(0, (sum, item) => sum + item['count']);
   }
 
-  Widget _buildFeaturedCategoryItem(BuildContext context, CattleCategoryModel category, Size screenSize) {
+  Widget _buildFeaturedCategoryItem(
+      BuildContext context, CattleCategoryModel category, Size screenSize) {
     return Container(
       width: screenSize.width * 0.9,
       height: screenSize.width * 0.33,
@@ -641,7 +669,8 @@ class _CowPageState extends State<CowPage> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _buildCategoryItem(BuildContext context, CattleCategoryModel category) {
+  Widget _buildCategoryItem(
+      BuildContext context, CattleCategoryModel category) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(

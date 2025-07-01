@@ -577,6 +577,7 @@ import 'package:farmxpert/features/authentication/screens/api_maneger/model/GetA
 import 'package:farmxpert/features/staff/widgets/worker_card.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/services.dart';
 
 class WorkersScreen extends StatefulWidget {
   @override
@@ -605,9 +606,10 @@ class _WorkersScreenState extends State<WorkersScreen> {
   }
 
   Future<void> loadWorkers() async {
+    print("🌀 Entered loadWorkers");
     try {
       final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString("auth_token") ?? "";
+      final token = prefs.getString("token") ?? "";
       if (token.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("لم يتم العثور على التوكن")),
@@ -617,6 +619,7 @@ class _WorkersScreenState extends State<WorkersScreen> {
       final data = await ApiManager.getAllWorkers(token);
       setState(() {
         workers = data;
+        print("🔁 Reloaded workers, new count: ${workers.length}");
         isLoading = false;
       });
     } catch (e) {
@@ -633,264 +636,229 @@ class _WorkersScreenState extends State<WorkersScreen> {
   final _formKey = GlobalKey<FormState>();
 
   Future<void> showAddWorkerDialog() async {
+    bool _obscurePassword = true;
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Add Worker"),
-        content: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                TextFormField(
-                  controller: nameController,
-                  decoration: InputDecoration(
-                    labelText: "Name",
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.green)),
+      builder: (context) => StatefulBuilder(builder: (context, setState) {
+        return AlertDialog(
+          title: Text("Add Worker"),
+          content: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      labelText: "Name",
+                      border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.green)),
+                    ),
+                    validator: (value) =>
+                        value == null || value.isEmpty ? "Enter name" : null,
                   ),
-                  validator: (value) =>
-                      value == null || value.isEmpty ? "Enter name" : null,
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  controller: emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    labelText: "Email",
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.green)),
+                  SizedBox(height: 10),
+                  TextFormField(
+                    controller: emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                      labelText: "Email",
+                      border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.green)),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) return "Enter email";
+                      final emailRegex =
+                          RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w]{2,4}$');
+                      return emailRegex.hasMatch(value)
+                          ? null
+                          : "Enter valid email";
+                    },
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) return "Enter email";
-                    final emailRegex =
-                        RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w]{2,4}$');
-                    return emailRegex.hasMatch(value)
-                        ? null
-                        : "Enter valid email";
-                  },
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  controller: phoneController,
-                  keyboardType: TextInputType.phone,
-                  decoration: InputDecoration(
-                    labelText: "Phone",
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.green)),
+                  SizedBox(height: 10),
+                  TextFormField(
+                    controller: phoneController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 11,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(11),
+                    ],
+                    decoration: InputDecoration(
+                      labelText: "Phone",
+                      border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.green)),
+                      counterText: '', // يخفي العداد تحت
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) return "Enter phone";
+                      if (value.length != 11) return "Phone must be 11 digits";
+                      return null;
+                    },
                   ),
-                  validator: (value) =>
-                      value == null || value.isEmpty ? "Enter phone" : null,
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  controller: passwordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: "Password",
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.green)),
+                  SizedBox(height: 10),
+                  TextFormField(
+                    controller: passwordController,
+                    obscureText: _obscurePassword,
+                    decoration: InputDecoration(
+                      labelText: "Password",
+                      border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.green)),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: Colors.grey,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
+                      ),
+                    ),
+                    validator: (value) => value == null || value.isEmpty
+                        ? "Enter password"
+                        : null,
                   ),
-                  validator: (value) =>
-                      value == null || value.isEmpty ? "Enter password" : null,
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  controller: specialtyController,
-                  decoration: InputDecoration(
-                    labelText: "Specialty",
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.green)),
+                  SizedBox(height: 10),
+                  TextFormField(
+                    controller: specialtyController,
+                    decoration: InputDecoration(
+                      labelText: "Specialty",
+                      border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.green)),
+                    ),
+                    validator: (value) => value == null || value.isEmpty
+                        ? "Enter specialty"
+                        : null,
                   ),
-                  validator: (value) =>
-                      value == null || value.isEmpty ? "Enter specialty" : null,
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  controller: nationalIDController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: "National ID",
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.green)),
+                  SizedBox(height: 10),
+                  TextFormField(
+                    controller: nationalIDController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 14,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(14),
+                    ],
+                    decoration: InputDecoration(
+                      labelText: "National ID",
+                      border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.green)),
+                      counterText: '', // يخفي العداد تحت
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty)
+                        return "Enter national ID";
+                      if (value.length != 14)
+                        return "National ID must be 14 digits";
+                      return null;
+                    },
                   ),
-                  validator: (value) => value == null || value.isEmpty
-                      ? "Enter national ID"
-                      : null,
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  controller: ageController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: "Age",
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.green)),
+                  SizedBox(height: 10),
+                  TextFormField(
+                    controller: ageController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: "Age",
+                      border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.green)),
+                    ),
+                    validator: (value) =>
+                        value == null || value.isEmpty ? "Enter age" : null,
                   ),
-                  validator: (value) =>
-                      value == null || value.isEmpty ? "Enter age" : null,
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  controller: experienceController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: "Experience",
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.green)),
+                  SizedBox(height: 10),
+                  TextFormField(
+                    controller: experienceController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: "Experience",
+                      border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.green)),
+                    ),
+                    validator: (value) => value == null || value.isEmpty
+                        ? "Enter experience"
+                        : null,
                   ),
-                  validator: (value) => value == null || value.isEmpty
-                      ? "Enter experience"
-                      : null,
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  controller: salaryController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: "Salary",
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.green)),
+                  SizedBox(height: 10),
+                  TextFormField(
+                    controller: salaryController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: "Salary",
+                      border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.green)),
+                    ),
+                    validator: (value) =>
+                        value == null || value.isEmpty ? "Enter salary" : null,
                   ),
-                  validator: (value) =>
-                      value == null || value.isEmpty ? "Enter salary" : null,
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("Cancel"),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (_formKey.currentState!.validate()) {
-                final prefs = await SharedPreferences.getInstance();
-                final token = prefs.getString("auth_token") ?? "";
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (_formKey.currentState!.validate()) {
+                  final prefs = await SharedPreferences.getInstance();
+                  final token = prefs.getString("token") ?? "";
 
-                if (token.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("لم يتم العثور على التوكن")),
-                  );
-                  return;
-                }
-
-                final workerData = {
-                  "Name": nameController.text.trim(),
-                  "Email": emailController.text.trim(),
-                  "Phone": phoneController.text.trim(),
-                  "Password": passwordController.text.trim(),
-                  "Specialty": specialtyController.text.trim(),
-                  "NationalID": nationalIDController.text.trim(),
-                  "Age": ageController.text.trim(),
-                  "Experience": experienceController.text.trim(),
-                  "Salary": salaryController.text.trim(),
-                };
-
-                try {
-                  final response =
-                      await ApiManager.addWorker(workerData, token);
-
-                  if (response != null) {
+                  if (token.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("تمت إضافة العامل بنجاح!")),
+                      SnackBar(content: Text("لم يتم العثور على التوكن")),
                     );
-                    await loadWorkers();
-                    Navigator.pop(context);
-                    clearFields();
-                  } else {
+                    return;
+                  }
+
+                  final workerData = {
+                    "Name": nameController.text.trim(),
+                    "Email": emailController.text.trim(),
+                    "Phone": phoneController.text.trim(),
+                    "Password": passwordController.text.trim(),
+                    "Specialty": specialtyController.text.trim(),
+                    "NationalID": nationalIDController.text.trim(),
+                    "Age": ageController.text.trim(),
+                    "Experience": experienceController.text.trim(),
+                    "Salary": salaryController.text.trim(),
+                  };
+
+                  try {
+                    final response =
+                        await ApiManager.addWorker(workerData, token);
+
+                    if (response != null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("تمت إضافة العامل بنجاح!")),
+                      );
+                      await loadWorkers();
+                      Navigator.pop(context);
+                      clearFields();
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("حدث خطأ أثناء إضافة العامل")),
+                      );
+                    }
+                  } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("حدث خطأ أثناء إضافة العامل")),
+                      SnackBar(content: Text("حدث خطأ أثناء الاتصال بالخادم")),
                     );
                   }
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("حدث خطأ أثناء الاتصال بالخادم")),
-                  );
                 }
-              }
-            },
-            child: Text("Save"),
-          )
-        ],
-      ),
+              },
+              child: Text("Save"),
+            )
+          ],
+        );
+      }),
     );
   }
-
-  // void showEditWorkerDialog(BuildContext context, Map<String, dynamic> worker) {
-  //   final nameController = TextEditingController(text: worker['name']);
-  //   final phoneController = TextEditingController(text: worker['phoneNumber']);
-  //   final addressController = TextEditingController(text: worker['address']);
-  //   final jobController = TextEditingController(text: worker['job']);
-  //   final emailController = TextEditingController(text: worker['email']);
-  //   final salaryController = TextEditingController(text: worker['salary']);
-  //   final nationalIdController = TextEditingController(text: worker['nationalId']);
-  //
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) {
-  //       return AlertDialog(
-  //         title: Text("تعديل العامل"),
-  //         content: SingleChildScrollView(
-  //           child: Column(
-  //             children: [
-  //               TextField(controller: nameController, decoration: InputDecoration(labelText: 'الاسم')),
-  //               TextField(controller: phoneController, decoration: InputDecoration(labelText: 'رقم الهاتف')),
-  //               TextField(controller: addressController, decoration: InputDecoration(labelText: 'العنوان')),
-  //               TextField(controller: jobController, decoration: InputDecoration(labelText: 'الوظيفة')),
-  //               TextField(controller: emailController, decoration: InputDecoration(labelText: 'البريد الإلكتروني')),
-  //               TextField(controller: salaryController, decoration: InputDecoration(labelText: 'المرتب')),
-  //               TextField(controller: nationalIdController, decoration: InputDecoration(labelText: 'الرقم القومي')),
-  //             ],
-  //           ),
-  //         ),
-  //         actions: [
-  //           TextButton(
-  //           onPressed: () async {
-  //         SharedPreferences prefs = await SharedPreferences.getInstance();
-  //         String? token = prefs.getString("auth_token"); // توحيد اسم التوكن
-  //
-  //         Map<String, String> updatedData = {
-  //           "Name": nameController.text,
-  //           "PhoneNumber": phoneController.text,
-  //           "Address": addressController.text,
-  //           "Job": jobController.text,
-  //           "Email": emailController.text,
-  //           "Salary": salaryController.text,
-  //           "NationalId": nationalIdController.text,
-  //         };
-  //
-  //         final response = await ApiManager.updateWorker(
-  //           worker['id'],
-  //           updatedData,
-  //           token!,
-  //         );
-  //
-  //         if (response != null) {
-  //           await loadWorkers(); // تحديث القائمة
-  //           Navigator.pop(context); // إغلاق نافذة التعديل
-  //           ScaffoldMessenger.of(context).showSnackBar(
-  //             SnackBar(content: Text('تم تعديل بيانات العامل بنجاح')),
-  //           );
-  //         } else {
-  //           ScaffoldMessenger.of(context).showSnackBar(
-  //             SnackBar(content: Text('فشل في تعديل البيانات')),
-  //           );
-  //         }
-  //       },
-  //       child: Text("حفظ"),
-  //           ),
-  //           TextButton(
-  //             onPressed: () => Navigator.pop(context),
-  //             child: Text("إلغاء"),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
 
   void showEditWorkerDialog(BuildContext context, Map<String, dynamic> worker) {
     final nameController = TextEditingController(text: worker['name']);
@@ -898,7 +866,8 @@ class _WorkersScreenState extends State<WorkersScreen> {
     // final addressController = TextEditingController(text: worker['address']);
     final jobController = TextEditingController(text: worker['job']);
     final emailController = TextEditingController(text: worker['email']);
-    final salaryController = TextEditingController(text: worker['salary']);
+    final salaryController =
+        TextEditingController(text: worker['salary'].toString());
     final nationalIdController =
         TextEditingController(text: worker['nationalId']);
 
@@ -937,13 +906,11 @@ class _WorkersScreenState extends State<WorkersScreen> {
             TextButton(
               onPressed: () async {
                 SharedPreferences prefs = await SharedPreferences.getInstance();
-                String? token =
-                    prefs.getString("auth_token"); // توحيد اسم التوكن
+                String? token = prefs.getString("token"); // توحيد اسم التوكن
 
                 Map<String, String> updatedData = {
                   "Name": nameController.text,
                   "PhoneNumber": phoneController.text,
-                  // "Address": addressController.text,
                   "Job": jobController.text,
                   "Email": emailController.text,
                   "Salary": salaryController.text,
@@ -1027,28 +994,13 @@ class _WorkersScreenState extends State<WorkersScreen> {
                   itemBuilder: (context, index) {
                     final worker = workers[index];
                     return WorkerCard(
-                      worker: {
-                        "name": worker.name,
-                        "specialty": worker.specialty,
-                        // "rating": worker.rating,
-                        "image": worker.imagePath, // لو في صورة للعامل
-                        "phone": worker.phone,
-                        "email": worker.email,
-                        "code": worker.code,
-                        "nationalId": worker.nationalID,
-                        "age": worker.age,
-                        "salary": worker.salary,
-                        // "hireDate": worker.hireDate,
-                        "experienceYears": worker.experience,
-                        // "password": worker.password, // في حال كان فيه كلمة سر
-                      },
+                      worker: worker, // هنا worker من نوع GetAllResponse
                       onDelete: () async {
                         final confirm = await showDialog<bool>(
                           context: context,
                           builder: (ctx) => AlertDialog(
                             title: const Text("Confirm Deletion"),
-                            content: const Text(
-                                "Are you sure you want to delete this worker?"),
+                            content: const Text("Are you sure you want to delete this worker?"),
                             actions: [
                               TextButton(
                                 child: const Text("Cancel"),
@@ -1067,27 +1019,20 @@ class _WorkersScreenState extends State<WorkersScreen> {
                             final prefs = await SharedPreferences.getInstance();
                             final token = prefs.getString('token');
 
-                            print(
-                                "🚨 Token: $token"); // قم بطباعة الـ token للتحقق من وجوده
+                            print("🚨 Token: $token");
 
                             if (token == null) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text(
-                                        "Authorization token is missing.")),
+                                const SnackBar(content: Text("Authorization token is missing.")),
                               );
                               return;
                             }
 
                             final deleteResponse =
-                                await ApiManager.deleteWorker(worker.id!);
+                            await ApiManager.deleteWorker(worker.id!, token);
 
-                            if (deleteResponse != null &&
-                                deleteResponse.success) {
-                              setState(() {
-                                isLoading = true;
-                              });
-                              await loadWorkers();
+                            if (deleteResponse != null && deleteResponse.success) {
+                              await loadWorkers(); // ✅ يعيد تحميل القائمة من السيرفر
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text(deleteResponse.message)),
                               );
@@ -1100,8 +1045,7 @@ class _WorkersScreenState extends State<WorkersScreen> {
                             }
                           } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content: Text("Error deleting worker: $e")),
+                              SnackBar(content: Text("Error deleting worker: $e")),
                             );
                           }
                         }
@@ -1111,17 +1055,17 @@ class _WorkersScreenState extends State<WorkersScreen> {
                         'id': worker.id,
                         'name': worker.name,
                         'phoneNumber': worker.phone,
-                        // 'address': worker.address ?? "", // إذا address مش موجود، مرر قيمة فارغة
                         'job': worker.specialty,
                         'email': worker.email,
                         'salary': worker.salary,
                         'nationalId': worker.nationalID,
                       }),
-                      onImagePick: () {},
-                      // onDelete: () => _confirmDelete(context, index), // لو في دالة للحذف
-                      // onEdit: () => _showAddWorkerDialog(context, index), // لو في دالة للتعديل
-                      // onImagePick: () => _pickImage(index), // لو في دالة لاختيار صورة
+
+                      onImagePick: () {
+                        // TODO: لو عايز تختار صورة جديدة أو تعدلها بعدين
+                      },
                     );
+
                   },
                 ),
       floatingActionButton: FloatingActionButton(
@@ -1130,29 +1074,90 @@ class _WorkersScreenState extends State<WorkersScreen> {
         backgroundColor: Colors.green, // نفس اللون زي الأول
       ),
     );
-
-    //   Scaffold(
-    //   appBar: AppBar(title: Text("Workers")),
-    //   body: isLoading
-    //       ? Center(child: CircularProgressIndicator())
-    //       : workers.isEmpty
-    //           ? Center(child: Text("No workers found"))
-    //           : ListView.builder(
-    //               itemCount: workers.length,
-    //               itemBuilder: (context, index) {
-    //                 final worker = workers[index];
-    //                 return ListTile(
-    //                   leading: Icon(Icons.person),
-    //                   title: Text(worker.name ?? "Unknown"),
-    //                   subtitle: Text(worker.specialty ?? ""),
-    //                   trailing: Text(worker.phone ?? ""),
-    //                 );
-    //               },
-    //             ),
-    //   floatingActionButton: FloatingActionButton(
-    //     onPressed: showAddWorkerDialog,
-    //     child: Icon(Icons.add),
-    //   ),
-    // );
   }
 }
+
+
+
+// WorkerCard(
+//   worker: worker,
+//   onDelete: () async {
+//     final confirm = await showDialog<bool>(
+//       context: context,
+//       builder: (ctx) => AlertDialog(
+//         title: const Text("Confirm Deletion"),
+//         content: const Text(
+//             "Are you sure you want to delete this worker?"),
+//         actions: [
+//           TextButton(
+//             child: const Text("Cancel"),
+//             onPressed: () => Navigator.of(ctx).pop(false),
+//           ),
+//           TextButton(
+//             child: const Text("Delete"),
+//             onPressed: () => Navigator.of(ctx).pop(true),
+//           ),
+//         ],
+//       ),
+//     );
+//
+//     if (confirm == true) {
+//       try {
+//         final prefs = await SharedPreferences.getInstance();
+//         final token = prefs.getString('token');
+//
+//         print(
+//             "🚨 Token: $token"); // قم بطباعة الـ token للتحقق من وجوده
+//
+//         if (token == null) {
+//           ScaffoldMessenger.of(context).showSnackBar(
+//             const SnackBar(
+//                 content: Text(
+//                     "Authorization token is missing.")),
+//           );
+//           return;
+//         }
+//
+//         final deleteResponse =
+//             await ApiManager.deleteWorker(
+//                 worker.id!, token);
+//
+//         if (deleteResponse != null &&
+//             deleteResponse.success) {
+//           setState(() {
+//             workers.removeWhere((w) => w.id == worker.id);
+//           });
+//           ScaffoldMessenger.of(context).showSnackBar(
+//             SnackBar(content: Text(deleteResponse.message)),
+//           );
+//         } else {
+//           ScaffoldMessenger.of(context).showSnackBar(
+//             SnackBar(
+//                 content: Text(deleteResponse?.message ??
+//                     "Failed to delete worker.")),
+//           );
+//         }
+//       } catch (e) {
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           SnackBar(
+//               content: Text("Error deleting worker: $e")),
+//         );
+//       }
+//     }
+//   },
+//
+//   onEdit: () => showEditWorkerDialog(context, {
+//     'id': worker.id,
+//     'name': worker.name,
+//     'phoneNumber': worker.phone,
+//     // 'address': worker.address ?? "", // إذا address مش موجود، مرر قيمة فارغة
+//     'job': worker.specialty,
+//     'email': worker.email,
+//     'salary': worker.salary,
+//     'nationalId': worker.nationalID,
+//   }),
+//   onImagePick: () {},
+//   // onDelete: () => _confirmDelete(context, index), // لو في دالة للحذف
+//   // onEdit: () => _showAddWorkerDialog(context, index), // لو في دالة للتعديل
+//   // onImagePick: () => _pickImage(index), // لو في دالة لاختيار صورة
+// );

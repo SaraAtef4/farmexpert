@@ -204,21 +204,20 @@
 //   }
 // }
 
-
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
 
 class VeterinarianCard extends StatefulWidget {
-  final Map<String, dynamic> vet;
+  final Map<String, dynamic> veterinair;
   final VoidCallback onDelete;
   final VoidCallback onEdit;
   final VoidCallback onImagePick;
 
   const VeterinarianCard({
     Key? key,
-    required this.vet,
+    required this.veterinair,
     required this.onDelete,
     required this.onEdit,
     required this.onImagePick,
@@ -267,18 +266,16 @@ class _VeterinarianCardState extends State<VeterinarianCard> {
                   child: CircleAvatar(
                     radius: 30,
                     backgroundColor: Colors.green.shade100,
-                    backgroundImage:
-                    widget.vet["image"] != null &&
-                        File(widget.vet["image"]).existsSync()
-                        ? FileImage(File(widget.vet["image"]))
+                    backgroundImage: widget.veterinair["image"] != null &&
+                            File(widget.veterinair["image"]).existsSync()
+                        ? FileImage(File(widget.veterinair["image"]))
                         : null,
-                    child:
-                    widget.vet["image"] == null
+                    child: widget.veterinair["image"] == null
                         ? const Icon(
-                      Icons.person,
-                      size: 30,
-                      color: Colors.green,
-                    )
+                            Icons.person,
+                            size: 30,
+                            color: Colors.green,
+                          )
                         : null,
                   ),
                 ),
@@ -291,7 +288,7 @@ class _VeterinarianCardState extends State<VeterinarianCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        widget.vet["name"]?.toString() ??
+                        widget.veterinair["name"]?.toString() ??
                             'Unnamed Veterinarian',
                         style: const TextStyle(
                           fontSize: 18,
@@ -301,7 +298,7 @@ class _VeterinarianCardState extends State<VeterinarianCard> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        widget.vet["specialty"]?.toString() ?? 'No specialty',
+                        widget.veterinair["specialty"]?.toString() ?? 'No specialty',
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.black54,
@@ -312,18 +309,17 @@ class _VeterinarianCardState extends State<VeterinarianCard> {
                       const SizedBox(height: 5),
                       RatingBar.builder(
                         initialRating:
-                        (widget.vet["rating"] as num?)?.toDouble() ?? 0.0,
+                            (widget.veterinair["rating"] as num?)?.toDouble() ?? 0.0,
                         minRating: 1,
                         direction: Axis.horizontal,
                         allowHalfRating: true,
                         itemCount: 5,
                         itemSize: 20,
-                        itemBuilder:
-                            (context, _) =>
-                        const Icon(Icons.star, color: Colors.amber),
+                        itemBuilder: (context, _) =>
+                            const Icon(Icons.star, color: Colors.amber),
                         onRatingUpdate: (rating) {
                           setState(() {
-                            widget.vet["rating"] = rating;
+                            widget.veterinair["rating"] = rating;
                           });
                         },
                       ),
@@ -335,12 +331,14 @@ class _VeterinarianCardState extends State<VeterinarianCard> {
                 IconButton(
                   icon: const Icon(Icons.edit),
                   color: Colors.green,
-                  onPressed: widget.onEdit,
+                  // onPressed: widget.onEdit,
+                  onPressed: () {},
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete),
                   color: Colors.red,
-                  onPressed: widget.onDelete,
+                  // onPressed: widget.onDelete,
+                  onPressed: () {},
                 ),
               ],
             ),
@@ -373,18 +371,19 @@ class _VeterinarianCardState extends State<VeterinarianCard> {
             // Expanded Details
             if (_isExpanded) ...[
               const SizedBox(height: 16),
-              _buildDetailRow(Icons.tag, widget.vet["code"] ?? 'Not assigned'),
+              _buildDetailRow(
+                  Icons.tag, widget.veterinair["code"]?.toString() ?? 'Not assigned'),
               _buildDetailRow(
                 Icons.credit_card,
-                widget.vet["nationalId"] ?? 'Not provided',
+                widget.veterinair["nationalId"]?.toString() ?? 'Not provided',
               ),
               _buildDetailRow(
                 Icons.phone,
-                widget.vet["phone"] ?? 'Not available',
+                widget.veterinair["phone"]?.toString() ?? 'Not available',
               ),
               _buildDetailRow(
                 Icons.email,
-                widget.vet["email"] ?? 'Not provided',
+                widget.veterinair["email"]?.toString() ?? 'Not provided',
               ),
 
               // Password Row with Toggle Visibility
@@ -397,7 +396,7 @@ class _VeterinarianCardState extends State<VeterinarianCard> {
                     Expanded(
                       child: Text(
                         _showPassword
-                            ? widget.vet["password"] ?? 'Not set'
+                            ? widget.veterinair["password"] ?? 'Not set'
                             : '*******',
                         style: const TextStyle(
                           fontSize: 16,
@@ -423,19 +422,19 @@ class _VeterinarianCardState extends State<VeterinarianCard> {
 
               _buildDetailRow(
                 Icons.cake,
-                _formatNumber(widget.vet["age"], ' years'),
+                _formatNumber(widget.veterinair["age"], ' years'),
               ),
               _buildDetailRow(
                 Icons.attach_money,
-                _formatNumber(widget.vet["salary"], ' EGP'),
+                _formatNumber(widget.veterinair["salary"], ' EGP'),
               ),
               _buildDetailRow(
                 Icons.date_range,
-                _formatDate(widget.vet["hireDate"]),
+                _formatDate(widget.veterinair["hireDate"]),
               ),
               _buildDetailRow(
                 Icons.work_history,
-                _formatNumber(widget.vet["experienceYears"], ' years'),
+                _formatNumber(widget.veterinair["experienceYears"], ' years'),
               ),
             ],
           ],
@@ -462,4 +461,3 @@ class _VeterinarianCardState extends State<VeterinarianCard> {
     );
   }
 }
-
