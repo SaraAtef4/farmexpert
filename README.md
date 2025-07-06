@@ -1,3 +1,9 @@
+# 🐄 FarmXpert – Cattle Farm Management App
+
+**FarmXpert** is a mobile application designed to help cattle farmers manage their daily farm activities more efficiently and in a more organized way.
+
+This app was developed as part of a graduation project, with the goal of providing a simple, farmer-friendly digital tool that replaces traditional paper-based methods
+
 ## 📌 What Does the App Do?
 
 FarmXpert enables farmers to:
@@ -27,4 +33,23 @@ A simple chatbot that answers questions about cattle care, nutrition, and daily 
 
  **User-Friendly**  
 Built with simplicity and clarity in mind.
+
+
+
+## ⚙️ How to Run the App
+
+> 📌 The app is built with **Flutter** and is currently developed for **Android**.
+
+### Prerequisites:
+- Flutter SDK installed on your machine
+- Android Studio or VS Code
+- A connected Android device or emulator
+
+### Steps:
+
+```bash
+git clone https://github.com/yourusername/farmxpert.git
+cd farmxpert
+flutter pub get
+flutter run
 
