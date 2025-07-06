@@ -1,16 +1,30 @@
-# farmxpert
+## 📌 What Does the App Do?
 
-A new Flutter project.
+FarmXpert enables farmers to:
 
-## Getting Started
+ **Record and Track Milk Production**  
+Farmers can enter daily milk production for each cow and review historical data.
 
-This project is a starting point for a Flutter application.
+ **Manage Livestock Information**  
+Add, view, and update data about each cow, including name, age,and gender.
 
-A few resources to get you started if this is your first Flutter project:
+ **Log Animal Events**  
+Track important events such as births, vaccinations, illnesses, or sales.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+ **Store Worker Information**  
+The app allows farmers to register and store basic information about farm workers, such as names, roles, and contact details - helping keep all farm-related data in one organized place.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+ **Set Reminders for Key Farm Tasks**  
+Farmers can create reminders for events like vaccination dates, milking times, or medical checkups, and get notified when it’s time.
+
+ **Generate Reports & Insights**  
+The app provides summary reports with data such as:  
+- Total number of cows  
+- Types of cattle breeds in the farm  
+
+ **Receive AI-Powered Help via Chatbot**  
+A simple chatbot that answers questions about cattle care, nutrition, and daily farm routines.
+
+ **User-Friendly**  
+Built with simplicity and clarity in mind.
+
