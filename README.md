@@ -1,16 +1,55 @@
-# farmxpert
+# 🐄 FarmXpert – Cattle Farm Management App
 
-A new Flutter project.
+**FarmXpert** is a mobile application designed to help cattle farmers manage their daily farm activities more efficiently and in a more organized way.
 
-## Getting Started
+This app was developed as part of a graduation project, with the goal of providing a simple, farmer-friendly digital tool that replaces traditional paper-based methods
 
-This project is a starting point for a Flutter application.
+## 📌 What Does the App Do?
 
-A few resources to get you started if this is your first Flutter project:
+FarmXpert enables farmers to:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+ **Record and Track Milk Production**  
+Farmers can enter daily milk production for each cow and review historical data.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+ **Manage Livestock Information**  
+Add, view, and update data about each cow, including name, age,and gender.
+
+ **Log Animal Events**  
+Track important events such as births, vaccinations, illnesses, or sales.
+
+ **Store Worker Information**  
+The app allows farmers to register and store basic information about farm workers, such as names, roles, and contact details - helping keep all farm-related data in one organized place.
+
+ **Set Reminders for Key Farm Tasks**  
+Farmers can create reminders for events like vaccination dates, milking times, or medical checkups, and get notified when it’s time.
+
+ **Generate Reports & Insights**  
+The app provides summary reports with data such as:  
+- Total number of cows  
+- Types of cattle breeds in the farm  
+
+ **Receive AI-Powered Help via Chatbot**  
+A simple chatbot that answers questions about cattle care, nutrition, and daily farm routines.
+
+ **User-Friendly**  
+Built with simplicity and clarity in mind.
+
+
+
+## ⚙️ How to Run the App
+
+> 📌 The app is built with **Flutter** and is currently developed for **Android**.
+
+### Prerequisites:
+- Flutter SDK installed on your machine
+- Android Studio or VS Code
+- A connected Android device or emulator
+
+### Steps:
+
+```bash
+git clone https://github.com/yourusername/farmxpert.git
+cd farmxpert
+flutter pub get
+flutter run
+
