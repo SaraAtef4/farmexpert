@@ -2,6 +2,8 @@ import 'package:farmxpert/features/reminders/screens/firebase_functions.dart';
 import 'package:farmxpert/features/reminders/screens/remnder_task_item.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 
 class RemnderTap extends StatefulWidget {
   RemnderTap({super.key});
@@ -19,26 +21,7 @@ class _RemnderTapState extends State<RemnderTap> {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // CalendarTimeline(
-        //   initialDate: date,
-        //   firstDate: DateTime.now().subtract(Duration(days: 365)),
-        //   lastDate: DateTime.now().add(Duration(days: 365)),
-        //   onDateSelected: (dateTime) {
-        //     date = dateTime;
-        //     setState(() {
-        //
-        //     });
-        //   },
-        //   leftMargin: 20,
-        //   monthColor: AppColors.grey,
-        //   dayColor: AppColors.primary,
-        //   activeDayColor: Colors.white,
-        //   activeBackgroundDayColor: AppColors.primary,
-        //   dotColor: Colors.white,
-        //   // selectableDayPredicate: (date) => date.day != 27,
-        //   locale: 'en',
-        // ),
-        SizedBox(height: 30),
+        SizedBox(height: 15.h,),
         StreamBuilder(
           stream: FirebaseFunctions.getTasks(date),
           builder: (context, snapshot) {
@@ -65,13 +48,13 @@ class _RemnderTapState extends State<RemnderTap> {
                   child: Column(
                 children: [
                   Icon(Icons.task_alt,
-                      size: 60,
+                      size: 60.r,
                       color: Colors.black54), // أيقونة توضيحية (اختياري)
-                  SizedBox(height: 16),
+                  SizedBox(height: 16.h),
                   Text(
                     "No Tasks yet",
                     style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 20.sp,
                         fontWeight: FontWeight.bold,
                         color: Colors.black54),
                   ),
@@ -82,7 +65,7 @@ class _RemnderTapState extends State<RemnderTap> {
             return Expanded(
               child: ListView.separated(
                 separatorBuilder: (context, index) => SizedBox(
-                  height: 12,
+                  height: 12.h,
                 ),
                 itemBuilder: (context, index) {
                   return RemederTaskItem(

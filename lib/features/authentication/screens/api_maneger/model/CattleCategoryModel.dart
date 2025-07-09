@@ -24,7 +24,7 @@ class CattleCategoryModel {
         color: Colors.indigo[200]!,
       ),
       CattleCategoryModel(
-        type: "Cows",
+        type: "Cow",
         imagePath: "assets/images/cow.png",
         count: 0,
         color: Colors.deepOrange[400]!,

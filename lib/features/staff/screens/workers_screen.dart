@@ -1,583 +1,14 @@
-// import 'dart:async';
-// import 'package:flutter/material.dart';
-// import 'package:provider/provider.dart';
-// import 'package:image_picker/image_picker.dart';
-//
-// import '../../../data/providers/staff_provider.dart';
-// import '../widgets/worker_card.dart';
-//
-//
-// class WorkersScreen extends StatefulWidget {
-//   const WorkersScreen({super.key});
-//
-//   @override
-//   State<WorkersScreen> createState() => _WorkersScreenState();
-// }
-//
-// class _WorkersScreenState extends State<WorkersScreen> {
-//
-//
-//   final TextEditingController searchController = TextEditingController();
-//   final ImagePicker _picker = ImagePicker();
-//   Timer? _searchTimer;
-//
-//   final FocusNode _nameFocusNode = FocusNode();
-//   final FocusNode _specialtyFocusNode = FocusNode();
-//   final FocusNode _phoneFocusNode = FocusNode();
-//   final FocusNode _salaryFocusNode = FocusNode();
-//   final FocusNode _ageFocusNode = FocusNode();
-//   final FocusNode _nationalIdFocusNode = FocusNode();
-//   final FocusNode _codeFocusNode = FocusNode();
-//   final FocusNode _experienceFocusNode = FocusNode();
-//
-//   double _fabScale = 1.0;
-//   bool _isPressed = false;
-//   @override
-//   void dispose() {
-//     _nameFocusNode.dispose();
-//     _specialtyFocusNode.dispose();
-//     _phoneFocusNode.dispose();
-//     _salaryFocusNode.dispose();
-//     _ageFocusNode.dispose();
-//     _nationalIdFocusNode.dispose();
-//     _codeFocusNode.dispose();
-//     _experienceFocusNode.dispose();
-//     searchController.dispose();
-//     _searchTimer?.cancel();
-//     super.dispose();
-//   }
-//
-//   InputDecoration _buildInputDecoration(
-//     String labelText,
-//     IconData icon,
-//     FocusNode focusNode,
-//   ) {
-//     return InputDecoration(
-//       labelText: labelText,
-//       labelStyle: TextStyle(
-//         color: focusNode.hasFocus ? Colors.green : Colors.grey,
-//       ),
-//       prefixIcon: Icon(icon, color: Colors.green),
-//       border: OutlineInputBorder(
-//         borderRadius: BorderRadius.circular(10),
-//         borderSide: const BorderSide(color: Colors.grey),
-//       ),
-//       focusedBorder: OutlineInputBorder(
-//         borderRadius: BorderRadius.circular(10),
-//         borderSide: const BorderSide(color: Colors.green, width: 2),
-//       ),
-//       enabledBorder: OutlineInputBorder(
-//         borderRadius: BorderRadius.circular(10),
-//         borderSide: const BorderSide(color: Colors.grey),
-//       ),
-//     );
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     final workerProvider = Provider.of<WorkerProvider>(context);
-//
-//     return Scaffold(
-//       appBar: AppBar(
-//         backgroundColor: Colors.green,
-//         title: const Text(
-//           "Farm Workers",
-//           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-//         ),
-//         centerTitle: true,
-//         leading: IconButton(
-//           icon: const Icon(Icons.arrow_back, color: Colors.white),
-//           onPressed: () => Navigator.pop(context),
-//         ),
-//         actions: [
-//           IconButton(
-//             icon: const Icon(Icons.sort, color: Colors.white),
-//             onPressed: () => workerProvider.sortByName(),
-//           ),
-//         ],
-//       ),
-//       body: Column(
-//         children: [
-//           Padding(
-//             padding: const EdgeInsets.all(16.0),
-//             child: TextField(
-//               controller: searchController,
-//               decoration: _buildInputDecoration(
-//                 "Search By Name , Code , ID...",
-//                 Icons.search,
-//                 FocusNode(),
-//               ),
-//               onChanged: (query) {
-//                 _searchTimer?.cancel();
-//                 _searchTimer = Timer(const Duration(milliseconds: 500), () {
-//                   workerProvider.filterSearch(query);
-//                 });
-//               },
-//             ),
-//           ),
-//           Expanded(
-//             child: Scrollbar(
-//               thickness: 8.0,
-//               radius: const Radius.circular(10),
-//               trackVisibility: true,
-//               thumbVisibility: true,
-//               interactive: true,
-//               child: ListView.builder(
-//                 padding: const EdgeInsets.symmetric(vertical: 8),
-//                 itemCount: workerProvider.filteredWorkers.length,
-//                 itemBuilder: (context, index) {
-//                   final worker = workerProvider.filteredWorkers[index];
-//                   return WorkerCard(
-//                     worker: worker,
-//                     onDelete: () => _confirmDelete(context, index),
-//                     onEdit:
-//                         () => _showAddWorkerDialog(
-//                           context,
-//                           workerProvider,
-//                           index,
-//                         ),
-//                     onImagePick: () => _pickImage(index),
-//                   );
-//                 },
-//               ),
-//             ),
-//           ),
-//         ],
-//       ),
-//       floatingActionButton: GestureDetector(
-//         onTapDown: (_) {
-//           setState(() {
-//             _fabScale = 0.95;
-//             _isPressed = true;
-//           });
-//         },
-//         onTapUp: (_) {
-//           setState(() {
-//             _fabScale = 1.0;
-//             _isPressed = false;
-//           });
-//           _showAddWorkerDialog(context, workerProvider, null);
-//         },
-//         onTapCancel: () {
-//           setState(() {
-//             _fabScale = 1.0;
-//             _isPressed = false;
-//           });
-//         },
-//         child: AnimatedScale(
-//           scale: _fabScale,
-//           duration: Duration(milliseconds: 150),
-//           child: AnimatedContainer(
-//             duration: Duration(milliseconds: 200),
-//             width: 64,
-//             height: 64,
-//             decoration: BoxDecoration(
-//               gradient: LinearGradient(
-//                 colors:
-//                     _isPressed
-//                         ? [Color(0xFF2E7D32), Color(0xFF1B5E20)]
-//                         : [Color(0xFF4CAF50), Color(0xFF2E7D32)],
-//                 begin: Alignment.topLeft,
-//                 end: Alignment.bottomRight,
-//               ),
-//               borderRadius: BorderRadius.circular(20),
-//               boxShadow:
-//                   _isPressed
-//                       ? []
-//                       : [
-//                         BoxShadow(
-//                           color: Color(0xFF4CAF50).withOpacity(0.4),
-//                           blurRadius: 12,
-//                           spreadRadius: 1,
-//                           offset: Offset(0, 4),
-//                         ),
-//                       ],
-//             ),
-//             child: Icon(
-//               Icons.add,
-//               size: 36,
-//               color: Colors.white.withOpacity(_isPressed ? 0.8 : 1.0),
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-//
-//   void _showAddWorkerDialog(
-//     BuildContext context,
-//     WorkerProvider provider,
-//     int? index,
-//   ) {
-//     final _formKey = GlobalKey<FormState>();
-//     bool _isSaving = false;
-//
-//     TextEditingController nameController = TextEditingController();
-//     TextEditingController specialtyController = TextEditingController();
-//     TextEditingController phoneController = TextEditingController();
-//     TextEditingController salaryController = TextEditingController();
-//     TextEditingController ageController = TextEditingController();
-//     TextEditingController nationalIdController = TextEditingController();
-//     TextEditingController codeController = TextEditingController();
-//     TextEditingController experienceController = TextEditingController();
-//
-//     if (index != null) {
-//       final worker = provider.workers[index];
-//       nameController.text = worker["name"] ?? '';
-//       specialtyController.text = worker["specialty"] ?? '';
-//       phoneController.text = worker["phone"] ?? '';
-//       salaryController.text = worker["salary"]?.toString() ?? '';
-//       ageController.text = worker["age"]?.toString() ?? '';
-//       nationalIdController.text = worker["nationalId"] ?? '';
-//       codeController.text = worker["code"] ?? '';
-//       experienceController.text = worker["experienceYears"]?.toString() ?? '';
-//     }
-//
-//     showDialog(
-//       context: context,
-//       builder: (context) {
-//         return Dialog(
-//           shape: RoundedRectangleBorder(
-//             borderRadius: BorderRadius.circular(15),
-//           ),
-//           child: SingleChildScrollView(
-//             padding: const EdgeInsets.all(16.0),
-//             child: Form(
-//               key: _formKey,
-//               child: Column(
-//                 mainAxisSize: MainAxisSize.min,
-//                 children: [
-//                   Text(
-//                     index == null ? "Add Worker" : "Edit Worker",
-//                     style: const TextStyle(
-//                       fontSize: 18,
-//                       fontWeight: FontWeight.bold,
-//                       color: Colors.green,
-//                     ),
-//                   ),
-//                   const SizedBox(height: 15),
-//                   TextFormField(
-//                     focusNode: _nameFocusNode,
-//                     controller: nameController,
-//                     decoration: _buildInputDecoration(
-//                       "Name",
-//                       Icons.person,
-//                       _nameFocusNode,
-//                     ),
-//                     validator: (value) {
-//                       if (value == null || value.isEmpty) {
-//                         return "Please enter a name";
-//                       }
-//                       return null;
-//                     },
-//                   ),
-//                   const SizedBox(height: 10),
-//                   TextFormField(
-//                     focusNode: _specialtyFocusNode,
-//                     controller: specialtyController,
-//                     decoration: _buildInputDecoration(
-//                       "Specialty",
-//                       Icons.work,
-//                       _specialtyFocusNode,
-//                     ),
-//                     validator: (value) {
-//                       if (value == null || value.isEmpty) {
-//                         return "Please enter a specialty";
-//                       }
-//                       return null;
-//                     },
-//                   ),
-//                   const SizedBox(height: 10),
-//                   TextFormField(
-//                     focusNode: _phoneFocusNode,
-//                     controller: phoneController,
-//                     decoration: _buildInputDecoration(
-//                       "Phone",
-//                       Icons.phone,
-//                       _phoneFocusNode,
-//                     ),
-//                     keyboardType: TextInputType.phone,
-//                     validator: (value) {
-//                       if (value == null || value.isEmpty) {
-//                         return "Please enter a phone number";
-//                       }
-//                       if (value.length != 11 ||
-//                           !RegExp(r'^[0-9]+$').hasMatch(value)) {
-//                         return "Phone number must be 11 digits";
-//                       }
-//                       return null;
-//                     },
-//                   ),
-//                   const SizedBox(height: 10),
-//                   TextFormField(
-//                     focusNode: _salaryFocusNode,
-//                     controller: salaryController,
-//                     decoration: _buildInputDecoration(
-//                       "Salary",
-//                       Icons.attach_money,
-//                       _salaryFocusNode,
-//                     ),
-//                     keyboardType: TextInputType.number,
-//                     validator: (value) {
-//                       if (value == null || value.isEmpty) {
-//                         return "Please enter a salary";
-//                       }
-//                       if (int.tryParse(value) == null) {
-//                         return "Please enter a valid number";
-//                       }
-//                       return null;
-//                     },
-//                   ),
-//                   const SizedBox(height: 10),
-//                   TextFormField(
-//                     focusNode: _ageFocusNode,
-//                     controller: ageController,
-//                     decoration: _buildInputDecoration(
-//                       "Age",
-//                       Icons.calendar_today,
-//                       _ageFocusNode,
-//                     ),
-//                     keyboardType: TextInputType.number,
-//                     validator: (value) {
-//                       if (value == null || value.isEmpty) {
-//                         return "Please enter an age";
-//                       }
-//                       if (int.tryParse(value) == null) {
-//                         return "Please enter a valid number";
-//                       }
-//                       return null;
-//                     },
-//                   ),
-//                   const SizedBox(height: 10),
-//                   TextFormField(
-//                     focusNode: _nationalIdFocusNode,
-//                     controller: nationalIdController,
-//                     decoration: _buildInputDecoration(
-//                       "National ID",
-//                       Icons.credit_card,
-//                       _nationalIdFocusNode,
-//                     ),
-//                     validator: (value) {
-//                       if (value == null || value.isEmpty) {
-//                         return "Please enter a national ID";
-//                       }
-//                       if (value.length != 14 ||
-//                           !RegExp(r'^[0-9]+$').hasMatch(value)) {
-//                         return "National ID must be 14 digits";
-//                       }
-//                       return null;
-//                     },
-//                   ),
-//                   const SizedBox(height: 10),
-//                   TextFormField(
-//                     focusNode: _codeFocusNode,
-//                     controller: codeController,
-//                     decoration: InputDecoration(
-//                       labelText: "Code",
-//                       prefixIcon: const Icon(Icons.tag, color: Colors.green),
-//                       labelStyle: TextStyle(color: Colors.grey),
-//                       border: OutlineInputBorder(
-//                         borderRadius: BorderRadius.circular(10),
-//                         borderSide: const BorderSide(color: Colors.grey),
-//                       ),
-//                       focusedBorder: OutlineInputBorder(
-//                         borderRadius: BorderRadius.circular(10),
-//                         borderSide: const BorderSide(
-//                           color: Colors.green,
-//                           width: 2,
-//                         ),
-//                       ),
-//                       enabledBorder: OutlineInputBorder(
-//                         borderRadius: BorderRadius.circular(10),
-//                         borderSide: const BorderSide(color: Colors.grey),
-//                       ),
-//                     ),
-//                     validator: (value) {
-//                       if (value == null || value.isEmpty) {
-//                         return "Please enter a code";
-//                       }
-//                       return null;
-//                     },
-//                   ),
-//                   const SizedBox(height: 10),
-//                   TextFormField(
-//                     focusNode: _experienceFocusNode,
-//                     controller: experienceController,
-//                     decoration: _buildInputDecoration(
-//                       "Experience (years)",
-//                       Icons.work,
-//                       _experienceFocusNode,
-//                     ),
-//                     keyboardType: TextInputType.number,
-//                     validator: (value) {
-//                       if (value == null || value.isEmpty) {
-//                         return "Please enter experience years";
-//                       }
-//                       if (int.tryParse(value) == null) {
-//                         return "Please enter a valid number";
-//                       }
-//                       return null;
-//                     },
-//                   ),
-//                   const SizedBox(height: 20),
-//                   Row(
-//                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                     children: [
-//                       TextButton(
-//                         onPressed: () => Navigator.pop(context),
-//                         child: const Text(
-//                           "Cancel",
-//                           style: TextStyle(
-//                             color: Colors.red,
-//                             fontWeight: FontWeight.bold,
-//                           ),
-//                         ),
-//                       ),
-//                       ElevatedButton(
-//                         onPressed:
-//                             _isSaving
-//                                 ? null
-//                                 : () async {
-//                                   if (_formKey.currentState!.validate()) {
-//                                     setState(() => _isSaving = true);
-//
-//                                     final newWorker = {
-//                                       "name": nameController.text,
-//                                       "specialty": specialtyController.text,
-//                                       "phone": phoneController.text,
-//                                       "salary":
-//                                           int.tryParse(salaryController.text) ??
-//                                           0,
-//                                       "age":
-//                                           int.tryParse(ageController.text) ?? 0,
-//                                       "nationalId": nationalIdController.text,
-//                                       "code": codeController.text,
-//                                       "experienceYears":
-//                                           int.tryParse(
-//                                             experienceController.text,
-//                                           ) ??
-//                                           0,
-//                                       "image":
-//                                           index != null
-//                                               ? provider.workers[index]["image"]
-//                                               : null,
-//                                       "rating":
-//                                           index != null
-//                                               ? provider
-//                                                       .workers[index]["rating"] ??
-//                                                   0.0
-//                                               : 0.0,
-//                                       "hireDate":
-//                                           index != null
-//                                               ? (provider
-//                                                       .workers[index]["hireDate"] ??
-//                                                   DateTime.now().toString())
-//                                               : DateTime.now().toString(),
-//                                     };
-//
-//                                     if (index == null) {
-//                                       provider.addWorker(newWorker, context);
-//                                     } else {
-//                                       provider.updateWorker(
-//                                         index,
-//                                         newWorker,
-//                                         context,
-//                                       );
-//                                     }
-//
-//                                     setState(() => _isSaving = false);
-//                                     Navigator.pop(context);
-//                                   }
-//                                 },
-//                         style: ElevatedButton.styleFrom(
-//                           backgroundColor: Colors.green,
-//                           padding: const EdgeInsets.symmetric(
-//                             horizontal: 20,
-//                             vertical: 10,
-//                           ),
-//                           shape: RoundedRectangleBorder(
-//                             borderRadius: BorderRadius.circular(10),
-//                           ),
-//                         ),
-//                         child:
-//                             _isSaving
-//                                 ? const CircularProgressIndicator(
-//                                   color: Colors.white,
-//                                 )
-//                                 : Text(
-//                                   index == null ? "Add" : "Update",
-//                                   style: const TextStyle(
-//                                     fontWeight: FontWeight.bold,
-//                                     color: Colors.white,
-//                                   ),
-//                                 ),
-//                       ),
-//                     ],
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           ),
-//         );
-//       },
-//     );
-//   }
-//
-//   Future<void> _pickImage(int index) async {
-//     try {
-//       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-//       if (image != null) {
-//         final provider = Provider.of<WorkerProvider>(context, listen: false);
-//         provider.workers[index]["image"] = image.path;
-//         provider.filterSearch(searchController.text);
-//         provider.saveWorkers();
-//       }
-//     } catch (e) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(content: Text("Error picking image: ${e.toString()}")),
-//       );
-//     }
-//   }
-//
-//   void _confirmDelete(BuildContext context, int index) {
-//     showDialog(
-//       context: context,
-//       builder: (context) {
-//         return AlertDialog(
-//           title: const Text("Confirm Delete"),
-//           content: const Text("Are you sure you want to delete this worker?"),
-//           actions: [
-//             TextButton(
-//               onPressed: () => Navigator.pop(context),
-//               child: const Text("Cancel", style: TextStyle(color: Colors.red)),
-//             ),
-//             TextButton(
-//               onPressed: () {
-//                 Provider.of<WorkerProvider>(
-//                   context,
-//                   listen: false,
-//                 ).deleteWorker(index, context);
-//                 Navigator.pop(context);
-//               },
-//               child: const Text(
-//                 "Delete",
-//                 style: TextStyle(color: Colors.green),
-//               ),
-//             ),
-//           ],
-//         );
-//       },
-//     );
-//   }
-// }
-//
+import 'dart:io';
 
 import 'package:farmxpert/features/authentication/screens/api_maneger/APIManeger.dart';
 import 'package:farmxpert/features/authentication/screens/api_maneger/model/GetAllResponse.dart';
 import 'package:farmxpert/features/staff/widgets/worker_card.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
+
+import '../../../core/widgets/custom_app_bar.dart';
 
 class WorkersScreen extends StatefulWidget {
   @override
@@ -599,6 +30,9 @@ class _WorkersScreenState extends State<WorkersScreen> {
   final experienceController = TextEditingController();
   final salaryController = TextEditingController();
 
+  File? selectedImage; // الصورة المختارة
+  File? editedImage;
+
   @override
   void initState() {
     super.initState();
@@ -612,7 +46,7 @@ class _WorkersScreenState extends State<WorkersScreen> {
       final token = prefs.getString("token") ?? "";
       if (token.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("لم يتم العثور على التوكن")),
+          SnackBar(content: Text("Token not found")),
         );
         return;
       }
@@ -628,7 +62,7 @@ class _WorkersScreenState extends State<WorkersScreen> {
         isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("حدث خطأ أثناء تحميل العمال")),
+        SnackBar(content: Text(" An error occurred while loading workers")),
       );
     }
   }
@@ -650,30 +84,25 @@ class _WorkersScreenState extends State<WorkersScreen> {
                 children: [
                   TextFormField(
                     controller: nameController,
-                    decoration: InputDecoration(
-                      labelText: "Name",
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.green)),
-                    ),
-                    validator: (value) =>
-                        value == null || value.isEmpty ? "Enter name" : null,
+                    decoration: _inputDecoration("Name"),
+                    style: TextStyle(color: Colors.black),
+                    validator: (value) => value == null || value.isEmpty
+                        ? "Please enter name"
+                        : null,
                   ),
                   SizedBox(height: 10),
                   TextFormField(
                     controller: emailController,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      labelText: "Email",
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.green)),
-                    ),
+                    decoration: _inputDecoration("Email"),
+                    style: TextStyle(color: Colors.black),
                     validator: (value) {
-                      if (value == null || value.isEmpty) return "Enter email";
-                      final emailRegex =
-                          RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w]{2,4}$');
+                      if (value == null || value.isEmpty)
+                        return "Please enter email";
+                      final emailRegex = RegExp(r'^[\w-\.]+@gmail\.com$');
                       return emailRegex.hasMatch(value)
                           ? null
-                          : "Enter valid email";
+                          : "Email must end with @gmail.com";
                     },
                   ),
                   SizedBox(height: 10),
@@ -685,15 +114,14 @@ class _WorkersScreenState extends State<WorkersScreen> {
                       FilteringTextInputFormatter.digitsOnly,
                       LengthLimitingTextInputFormatter(11),
                     ],
-                    decoration: InputDecoration(
-                      labelText: "Phone",
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.green)),
-                      counterText: '', // يخفي العداد تحت
-                    ),
+                    decoration:
+                        _inputDecoration("Phone").copyWith(counterText: ''),
+                    style: TextStyle(color: Colors.black),
                     validator: (value) {
-                      if (value == null || value.isEmpty) return "Enter phone";
-                      if (value.length != 11) return "Phone must be 11 digits";
+                      if (value == null || value.isEmpty)
+                        return "Please enter phone number";
+                      if (value.length != 11)
+                        return "Phone number must be 11 digits";
                       return null;
                     },
                   ),
@@ -701,10 +129,7 @@ class _WorkersScreenState extends State<WorkersScreen> {
                   TextFormField(
                     controller: passwordController,
                     obscureText: _obscurePassword,
-                    decoration: InputDecoration(
-                      labelText: "Password",
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.green)),
+                    decoration: _inputDecoration("Password").copyWith(
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword
@@ -719,20 +144,18 @@ class _WorkersScreenState extends State<WorkersScreen> {
                         },
                       ),
                     ),
+                    style: TextStyle(color: Colors.black),
                     validator: (value) => value == null || value.isEmpty
-                        ? "Enter password"
+                        ? "Please enter password"
                         : null,
                   ),
                   SizedBox(height: 10),
                   TextFormField(
                     controller: specialtyController,
-                    decoration: InputDecoration(
-                      labelText: "Specialty",
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.green)),
-                    ),
+                    decoration: _inputDecoration("Specialty"),
+                    style: TextStyle(color: Colors.black),
                     validator: (value) => value == null || value.isEmpty
-                        ? "Enter specialty"
+                        ? "Please enter specialty"
                         : null,
                   ),
                   SizedBox(height: 10),
@@ -744,15 +167,12 @@ class _WorkersScreenState extends State<WorkersScreen> {
                       FilteringTextInputFormatter.digitsOnly,
                       LengthLimitingTextInputFormatter(14),
                     ],
-                    decoration: InputDecoration(
-                      labelText: "National ID",
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.green)),
-                      counterText: '', // يخفي العداد تحت
-                    ),
+                    decoration: _inputDecoration("National ID")
+                        .copyWith(counterText: ''),
+                    style: TextStyle(color: Colors.black),
                     validator: (value) {
                       if (value == null || value.isEmpty)
-                        return "Enter national ID";
+                        return "Please enter national ID";
                       if (value.length != 14)
                         return "National ID must be 14 digits";
                       return null;
@@ -762,39 +182,54 @@ class _WorkersScreenState extends State<WorkersScreen> {
                   TextFormField(
                     controller: ageController,
                     keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: "Age",
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.green)),
-                    ),
-                    validator: (value) =>
-                        value == null || value.isEmpty ? "Enter age" : null,
+                    decoration: _inputDecoration("Age"),
+                    style: TextStyle(color: Colors.black),
+                    validator: (value) => value == null || value.isEmpty
+                        ? "Please enter age"
+                        : null,
                   ),
                   SizedBox(height: 10),
                   TextFormField(
                     controller: experienceController,
                     keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: "Experience",
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.green)),
-                    ),
+                    decoration: _inputDecoration("Experience"),
+                    style: TextStyle(color: Colors.black),
                     validator: (value) => value == null || value.isEmpty
-                        ? "Enter experience"
+                        ? "Please enter experience"
                         : null,
                   ),
                   SizedBox(height: 10),
                   TextFormField(
                     controller: salaryController,
                     keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: "Salary",
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.green)),
-                    ),
-                    validator: (value) =>
-                        value == null || value.isEmpty ? "Enter salary" : null,
+                    decoration: _inputDecoration("Salary"),
+                    style: TextStyle(color: Colors.black),
+                    validator: (value) => value == null || value.isEmpty
+                        ? "Please enter salary"
+                        : null,
                   ),
+                  SizedBox(height: 10),
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      final picker = ImagePicker();
+                      final picked =
+                          await picker.pickImage(source: ImageSource.gallery);
+                      if (picked != null) {
+                        setState(() {
+                          selectedImage = File(picked.path);
+                        });
+                      }
+                    },
+                    icon: Icon(Icons.image),
+                    label: Text("Choose Image"),
+                    style:
+                        ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                  ),
+                  if (selectedImage != null)
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Image.file(selectedImage!, height: 100),
+                    ),
                 ],
               ),
             ),
@@ -812,7 +247,7 @@ class _WorkersScreenState extends State<WorkersScreen> {
 
                   if (token.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("لم يتم العثور على التوكن")),
+                      SnackBar(content: Text("Token not found")),
                     );
                     return;
                   }
@@ -830,24 +265,29 @@ class _WorkersScreenState extends State<WorkersScreen> {
                   };
 
                   try {
-                    final response =
-                        await ApiManager.addWorker(workerData, token);
+                    final response = await ApiManager.addWorker(
+                        workerData, token,
+                        image: selectedImage);
 
                     if (response != null) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("تمت إضافة العامل بنجاح!")),
+                        SnackBar(content: Text("Worker added successfully!")),
                       );
                       await loadWorkers();
                       Navigator.pop(context);
                       clearFields();
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("حدث خطأ أثناء إضافة العامل")),
+                        SnackBar(
+                            content:
+                                Text("Error occurred while adding the worker")),
                       );
                     }
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("حدث خطأ أثناء الاتصال بالخادم")),
+                      SnackBar(
+                          content: Text(
+                              "Error occurred while connecting to the server")),
                     );
                   }
                 }
@@ -860,92 +300,212 @@ class _WorkersScreenState extends State<WorkersScreen> {
     );
   }
 
+  InputDecoration _inputDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: TextStyle(color: Colors.black),
+      border: OutlineInputBorder(),
+      enabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.grey),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.green, width: 2),
+      ),
+    );
+  }
+
   void showEditWorkerDialog(BuildContext context, Map<String, dynamic> worker) {
+    final _formKey = GlobalKey<FormState>();
+
     final nameController = TextEditingController(text: worker['name']);
     final phoneController = TextEditingController(text: worker['phoneNumber']);
-    // final addressController = TextEditingController(text: worker['address']);
-    final jobController = TextEditingController(text: worker['job']);
+    final specialtyController =
+        TextEditingController(text: worker['specialty']);
     final emailController = TextEditingController(text: worker['email']);
     final salaryController =
         TextEditingController(text: worker['salary'].toString());
     final nationalIdController =
         TextEditingController(text: worker['nationalId']);
 
+    InputDecoration _inputDecoration(String label) {
+      return InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: Colors.black),
+        border: OutlineInputBorder(),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.grey),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.green, width: 2),
+        ),
+      );
+    }
+
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text("تعديل العامل"),
+          title: Text("Edit Worker"),
           content: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextField(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  TextFormField(
                     controller: nameController,
-                    decoration: InputDecoration(labelText: 'الاسم')),
-                TextField(
+                    decoration: _inputDecoration('Name'),
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Name is required'
+                        : null,
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
                     controller: phoneController,
-                    decoration: InputDecoration(labelText: 'رقم الهاتف')),
-                // TextField(controller: addressController, decoration: InputDecoration(labelText: 'العنوان')),
-                TextField(
-                    controller: jobController,
-                    decoration: InputDecoration(labelText: 'الوظيفة')),
-                TextField(
+                    maxLength: 11, // ✅ يمنع إدخال أكثر من 11 رقم
+                    decoration: _inputDecoration('Phone Number'),
+                    keyboardType: TextInputType.phone,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Phone number is required';
+                      } else if (!RegExp(r'^\d{11}$').hasMatch(value)) {
+                        return 'Phone number must be 11 digits';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: specialtyController,
+                    decoration: _inputDecoration('Specialty'),
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Specialty is required'
+                        : null,
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
                     controller: emailController,
-                    decoration:
-                        InputDecoration(labelText: 'البريد الإلكتروني')),
-                TextField(
+                    decoration: _inputDecoration('Email'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Email is required';
+                      } else if (!RegExp(r'^[a-zA-Z0-9._%+-]+@gmail\.com$')
+                          .hasMatch(value)) {
+                        return 'Email must be in the format user@gmail.com';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
                     controller: salaryController,
-                    decoration: InputDecoration(labelText: 'المرتب')),
-                TextField(
+                    decoration: _inputDecoration('Salary'),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Salary is required';
+                      }
+                      try {
+                        double.parse(value);
+                        return null;
+                      } catch (e) {
+                        return 'Salary must be a number';
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
                     controller: nationalIdController,
-                    decoration: InputDecoration(labelText: 'الرقم القومي')),
-              ],
+                    maxLength: 14, // ✅ يمنع إدخال أكثر من 14 رقم
+                    decoration: _inputDecoration('National ID'),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'National ID is required';
+                      } else if (!RegExp(r'^\d{14}$').hasMatch(value)) {
+                        return 'National ID must be 14 digits';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () async {
-                SharedPreferences prefs = await SharedPreferences.getInstance();
-                String? token = prefs.getString("token"); // توحيد اسم التوكن
-
-                Map<String, String> updatedData = {
-                  "Name": nameController.text,
-                  "PhoneNumber": phoneController.text,
-                  "Job": jobController.text,
-                  "Email": emailController.text,
-                  "Salary": salaryController.text,
-                  "NationalId": nationalIdController.text,
-                };
-
-                // التحقق من البيانات التي سيتم إرسالها
-                print("Sending data to update worker: $updatedData");
-
-                final response = await ApiManager.updateWorker(
-                  worker['id'],
-                  updatedData,
-                  token!,
-                );
-
-                if (response != null &&
-                    response.message == "Worker updated successfully") {
-                  await loadWorkers();
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('تم تعديل بيانات العامل بنجاح')),
-                  );
-                } else {
-                  print("Error response: ${response?.message}");
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('فشل في تعديل البيانات')),
-                  );
-                }
-              },
-              child: Text("حفظ"),
+            // Centered image change button
+            Center(
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  final picker = ImagePicker();
+                  final picked =
+                      await picker.pickImage(source: ImageSource.gallery);
+                  if (picked != null) {
+                    editedImage = File(picked.path);
+                  }
+                },
+                icon: Icon(Icons.image),
+                label: Text("Change Image"),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+              ),
             ),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("إلغاء"),
+            const SizedBox(height: 10),
+
+            // Row with Save and Cancel buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () async {
+                    if (_formKey.currentState!.validate()) {
+                      SharedPreferences prefs =
+                          await SharedPreferences.getInstance();
+                      String? token = prefs.getString("token");
+
+                      Map<String, String> updatedData = {
+                        "Name": nameController.text,
+                        "PhoneNumber": phoneController.text,
+                        "specialty": specialtyController.text,
+                        "Email": emailController.text,
+                        "Salary": double.parse(salaryController.text).toString(), // ✅ تحويل مباشر لـ double ثم String
+                        "NationalId": nationalIdController.text,
+                      };
+
+                      final response = await ApiManager.updateWorker(
+                        worker['id'],
+                        updatedData,
+                        token!,
+                        image: editedImage,
+                      );
+
+                      if (response != null &&
+                          response.message == "Worker updated successfully") {
+                        await loadWorkers();
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content:
+                                  Text('Worker data updated successfully')),
+                        );
+                      } else {
+                        print("Error response: ${response?.message}");
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Failed to update data')),
+                        );
+                      }
+                    }
+                  },
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                  child: Text("Save"),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
+                  child: Text("Cancel"),
+                ),
+              ],
             ),
+            const SizedBox(height: 10),
           ],
         );
       },
@@ -967,24 +527,8 @@ class _WorkersScreenState extends State<WorkersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.green,
-        title: const Text(
-          "Farm Workers",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        // actions: [
-        //   IconButton(
-        //     icon: const Icon(Icons.sort, color: Colors.white),
-        //     onPressed: () => workerProvider.sortByName(),
-        //   ),
-        // ],
-      ),
+      appBar: CustomAppBar(title: "Farm Workers",),
+
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : workers.isEmpty
@@ -1000,7 +544,8 @@ class _WorkersScreenState extends State<WorkersScreen> {
                           context: context,
                           builder: (ctx) => AlertDialog(
                             title: const Text("Confirm Deletion"),
-                            content: const Text("Are you sure you want to delete this worker?"),
+                            content: const Text(
+                                "Are you sure you want to delete this worker?"),
                             actions: [
                               TextButton(
                                 child: const Text("Cancel"),
@@ -1023,15 +568,19 @@ class _WorkersScreenState extends State<WorkersScreen> {
 
                             if (token == null) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text("Authorization token is missing.")),
+                                const SnackBar(
+                                    content: Text(
+                                        "Authorization token is missing.")),
                               );
                               return;
                             }
 
                             final deleteResponse =
-                            await ApiManager.deleteWorker(worker.id!, token);
+                                await ApiManager.deleteWorker(
+                                    worker.id!, token);
 
-                            if (deleteResponse != null && deleteResponse.success) {
+                            if (deleteResponse != null &&
+                                deleteResponse.success) {
                               await loadWorkers(); // ✅ يعيد تحميل القائمة من السيرفر
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text(deleteResponse.message)),
@@ -1045,7 +594,8 @@ class _WorkersScreenState extends State<WorkersScreen> {
                             }
                           } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("Error deleting worker: $e")),
+                              SnackBar(
+                                  content: Text("Error deleting worker: $e")),
                             );
                           }
                         }
@@ -1055,7 +605,7 @@ class _WorkersScreenState extends State<WorkersScreen> {
                         'id': worker.id,
                         'name': worker.name,
                         'phoneNumber': worker.phone,
-                        'job': worker.specialty,
+                        'specialty': worker.specialty,
                         'email': worker.email,
                         'salary': worker.salary,
                         'nationalId': worker.nationalID,
@@ -1065,7 +615,6 @@ class _WorkersScreenState extends State<WorkersScreen> {
                         // TODO: لو عايز تختار صورة جديدة أو تعدلها بعدين
                       },
                     );
-
                   },
                 ),
       floatingActionButton: FloatingActionButton(
@@ -1076,8 +625,6 @@ class _WorkersScreenState extends State<WorkersScreen> {
     );
   }
 }
-
-
 
 // WorkerCard(
 //   worker: worker,
@@ -1151,7 +698,7 @@ class _WorkersScreenState extends State<WorkersScreen> {
 //     'name': worker.name,
 //     'phoneNumber': worker.phone,
 //     // 'address': worker.address ?? "", // إذا address مش موجود، مرر قيمة فارغة
-//     'job': worker.specialty,
+//     'specialty': worker.specialty,
 //     'email': worker.email,
 //     'salary': worker.salary,
 //     'nationalId': worker.nationalID,

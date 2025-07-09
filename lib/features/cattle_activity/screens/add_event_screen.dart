@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:farmxpert/core/theme/colors.dart';
 import 'package:farmxpert/features/cattle_activity/models/activity_model.dart';
+import 'package:farmxpert/features/cattle_activity/screens/tag_selection_screen_cow_only.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,13 +10,13 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../data/providers/cattle_events_provider.dart';
-import '../../../test/tag_selection_screen.dart';
 import '../../../test/widgets/milk_text_field.dart';
+import '../../authentication/screens/api_maneger/APIManeger.dart';
 
 class AddEventScreen extends StatefulWidget {
   final bool isIndividual;
 
-   AddEventScreen({Key? key, required this.isIndividual})
+  AddEventScreen({Key? key, required this.isIndividual})
       : super(key: key);
 
   @override
@@ -30,7 +33,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
   final TextEditingController medicineController = TextEditingController();
   final TextEditingController dosageController = TextEditingController();
   final TextEditingController withdrawalTimeController =
-      TextEditingController();
+  TextEditingController();
   final TextEditingController vaccineTypeController = TextEditingController();
   final TextEditingController notesController = TextEditingController();
   final TextEditingController dateController = TextEditingController();
@@ -40,6 +43,11 @@ class _AddEventScreenState extends State<AddEventScreen> {
     super.initState();
     dateController.text = DateFormat('yyyy-MM-dd').format(selectedDate);
     eventType = "Select the event type..";
+
+    Future.microtask(() {
+      Provider.of<CattleEventsProvider>(context, listen: false)
+          .fetchEventTypesIND();
+    });
   }
 
   @override
@@ -84,14 +92,14 @@ class _AddEventScreenState extends State<AddEventScreen> {
     }
   }
 
-  void _saveEvent() {
+  Future<void> _saveEvent() async {
     if (eventType == "Select the event type..") {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content:  Text('Please select an event type'),
           behavior: SnackBarBehavior.floating,
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           backgroundColor: Colors.red[700],
         ),
       );
@@ -105,7 +113,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
           content:  Text('Please enter a cattle ID'),
           behavior: SnackBarBehavior.floating,
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           backgroundColor: Colors.red[700],
         ),
       );
@@ -114,12 +122,38 @@ class _AddEventScreenState extends State<AddEventScreen> {
 
     Map<String, dynamic> additionalData = {};
 
+    // if (widget.isIndividual) {
+    //   if (eventType == 'Gives Birth' && calfGenderController.text.isNotEmpty) {
+    //     additionalData['calfGender'] = calfGenderController.text;
+    //   } else if (eventType == 'Weighted' && weightController.text.isNotEmpty) {
+    //     additionalData['weight'] = weightController.text;
+    //   } else if (eventType == 'Treated/Medicated') {
+    //     if (medicineController.text.isNotEmpty)
+    //       additionalData['medicine'] = medicineController.text;
+    //     if (dosageController.text.isNotEmpty)
+    //       additionalData['dosage'] = dosageController.text;
+    //     if (withdrawalTimeController.text.isNotEmpty)
+    //       additionalData['withdrawalTime'] = withdrawalTimeController.text;
+    //   } else if (eventType == 'Vaccinated') {
+    //     if (vaccineTypeController.text.isNotEmpty)
+    //       additionalData['vaccineType'] = vaccineTypeController.text;
+    //   }
+    // } else {
+    //   if (eventType == 'Vaccination/Injection' ||
+    //       eventType == 'Treatment/Medication') {
+    //     if (medicineController.text.isNotEmpty)
+    //       additionalData['medicine'] = medicineController.text;
+    //     if (dosageController.text.isNotEmpty)
+    //       additionalData['dosage'] = dosageController.text;
+    //   }
+    // }
+
     if (widget.isIndividual) {
       if (eventType == 'Gives Birth' && calfGenderController.text.isNotEmpty) {
         additionalData['calfGender'] = calfGenderController.text;
       } else if (eventType == 'Weighted' && weightController.text.isNotEmpty) {
         additionalData['weight'] = weightController.text;
-      } else if (eventType == 'Treated/Medicated') {
+      } else if (eventType == 'Treated') {
         if (medicineController.text.isNotEmpty)
           additionalData['medicine'] = medicineController.text;
         if (dosageController.text.isNotEmpty)
@@ -131,14 +165,14 @@ class _AddEventScreenState extends State<AddEventScreen> {
           additionalData['vaccineType'] = vaccineTypeController.text;
       }
     } else {
-      if (eventType == 'Vaccination/Injection' ||
-          eventType == 'Treatment/Medication') {
+      if (eventType == 'Vaccinated' || eventType == 'Treated') {
         if (medicineController.text.isNotEmpty)
           additionalData['medicine'] = medicineController.text;
         if (dosageController.text.isNotEmpty)
           additionalData['dosage'] = dosageController.text;
       }
     }
+
 
     final newEvent = CattleActivityEvent(
       cattleId: widget.isIndividual && tagController.text.isNotEmpty
@@ -151,9 +185,67 @@ class _AddEventScreenState extends State<AddEventScreen> {
       additionalData: additionalData.isNotEmpty ? additionalData : null,
     );
 
-    // Add the event to the provider
-    Provider.of<CattleEventsProvider>(context, listen: false)
-        .addEvent(newEvent);
+    final Map<String, String> bodyData = {
+      if (newEvent.eventType != null) "EventType": newEvent.eventType!,
+      if (newEvent.cattleId != null) "TagNumber": newEvent.cattleId!.toString(),
+      if (newEvent.notes != null) "Notes": newEvent.notes!,
+      "date": DateFormat('yyyy-MM-dd').format(newEvent.date),
+    };
+
+// Add additional non-null optional fields
+    newEvent.additionalData?.forEach((key, value) {
+      if (value != null) {
+        bodyData[key] = value.toString();
+      }
+    });
+
+
+
+    print("🟡 Final BodyData Sent (Multipart): ${bodyData}");
+
+    // final bodyData = {
+    //   "eventType": eventType.trim(),
+    //   "tagNumber": int.tryParse(tagController.text),
+    //   "notes": notesController.text.trim(),
+    //   "date": DateFormat('yyyy-MM-dd').format(selectedDate),
+    //   ...?additionalData,
+    // };
+
+
+    final response = await ApiManager().addEventCattleActivityIND(bodyData);
+
+    if (response != null) {
+      final addedEvent = CattleActivityEvent(
+        cattleId: response.eventData.tagNumber,
+        eventType: response.eventData.EventType.toString(),
+        date: DateTime.parse(response.eventData.date.toString()),
+        notes: newEvent.notes,
+        isIndividual: widget.isIndividual,
+        additionalData: {
+          "medicine": response.eventData.medicine,
+          "dosage": response.eventData.dosage,
+          "withdrawalTime": response.eventData.withdrawalTime,
+        }..removeWhere((key, value) => value == null),
+      );
+
+      Provider.of<CattleEventsProvider>(context, listen: false).addEvent(addedEvent);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${widget.isIndividual ? "Individual" : "Group"} event added successfully'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.green[700],
+        ),
+      );
+      Navigator.of(context).pop();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to add event. Please try again.'),
+          backgroundColor: Colors.red[700],
+        ),
+      );
+    }
 
     // Show success message
     ScaffoldMessenger.of(context).showSnackBar(
@@ -196,10 +288,10 @@ class _AddEventScreenState extends State<AddEventScreen> {
             label: "Weight (kg)",
             hintText: "Enter weight",
             isRequired: true,
-            keyboardType: TextInputType.number,
+            keyboardType: TextInputType.text,
           ),
         ));
-      } else if (eventType == 'Treated/Medicated') {
+      } else if (eventType == 'Treated') {
         fields.addAll([
           _buildAnimatedField(
             MilkTextField(
@@ -212,7 +304,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
               keyboardType: TextInputType.text,
             ),
           ),
-           SizedBox(height: 16),
+          SizedBox(height: 16),
           _buildAnimatedField(
             MilkTextField(
               width: double.infinity,
@@ -224,7 +316,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
               keyboardType: TextInputType.text,
             ),
           ),
-           SizedBox(height: 16),
+          SizedBox(height: 16),
           _buildAnimatedField(
             MilkTextField(
               width: double.infinity,
@@ -250,8 +342,8 @@ class _AddEventScreenState extends State<AddEventScreen> {
         ));
       }
     } else {
-      if (eventType == 'Vaccination/Injection' ||
-          eventType == 'Treatment/Medication') {
+      if (eventType == 'Vaccinated' ||
+          eventType == 'Treated') {
         fields.addAll([
           _buildAnimatedField(
             MilkTextField(
@@ -264,7 +356,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
               keyboardType: TextInputType.text,
             ),
           ),
-           SizedBox(height: 16),
+          SizedBox(height: 16),
           _buildAnimatedField(
             MilkTextField(
               width: double.infinity,
@@ -304,8 +396,9 @@ class _AddEventScreenState extends State<AddEventScreen> {
 
   @override
   Widget build(BuildContext context) {
-    List<String> eventTypes = ["Select the event type.."];
-    eventTypes.addAll(CattleActivityEvent.getEventTypes(widget.isIndividual));
+    final provider = Provider.of<CattleEventsProvider>(context);
+    final List<String> eventTypes = ["Select the event type..", ...provider.eventTypes];
+
 
     return Scaffold(
       appBar: AppBar(
@@ -356,21 +449,21 @@ class _AddEventScreenState extends State<AddEventScreen> {
                         text: TextSpan(
                             text: 'Event Type',
                             style: GoogleFonts.inter(
-                              color: Theme.of(context).primaryColor,
-                              fontSize: 22,
-                              fontWeight: FontWeight.w500
+                                color: Theme.of(context).primaryColor,
+                                fontSize: 22,
+                                fontWeight: FontWeight.w500
                             ),
                             children: [
                               TextSpan(
                                   text: '*',
                                   style: GoogleFonts.inter(
-                                    color: Colors.red,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold
+                                      color: Colors.red,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold
                                   ))
                             ]),
                       ),
-                       SizedBox(height: 8),
+                      SizedBox(height: 8),
                       Container(
                         padding:  EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
@@ -408,7 +501,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                 ),
               ),
 
-               SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // Details card
               Card(
@@ -430,7 +523,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                           fontSize: 16,
                         ),
                       ),
-                       SizedBox(height: 16),
+                      SizedBox(height: 16),
 
                       // Date field
                       MilkTextField(
@@ -445,7 +538,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                         onTap: _selectDate,
                       ),
 
-                       SizedBox(height: 16),
+                      SizedBox(height: 16),
 
                       // Cattle ID field (only for individual events)
                       if (widget.isIndividual)
@@ -466,7 +559,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                             String? selectedTag = await Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => TagSelectionScreen()),
+                                  builder: (context) => TagSelectionScreenCowOnly()),
                             );
                             if (selectedTag != null) {
                               setState(() {
@@ -481,9 +574,9 @@ class _AddEventScreenState extends State<AddEventScreen> {
                       // Dynamic fields based on event type
                       ..._buildDynamicFields()
                           .map((field) => Padding(
-                                padding: const EdgeInsets.only(bottom: 16.0),
-                                child: field,
-                              ))
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: field,
+                      ))
                           .toList(),
 
                       // Notes field
@@ -494,6 +587,8 @@ class _AddEventScreenState extends State<AddEventScreen> {
                         label: "Notes",
                         hintText: "Enter notes about the event",
                         maxLines: 3,
+                        keyboardType: TextInputType.text, // 👈 ده المهم
+
                       ),
                     ],
                   ),

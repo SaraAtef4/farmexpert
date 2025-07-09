@@ -44,7 +44,7 @@ class MyThemeData {
       ),
     ),
 
-    tabBarTheme: TabBarTheme(
+    tabBarTheme: const TabBarThemeData(
       labelColor: AppColors.primaryColor,
       unselectedLabelColor: Colors.grey,
       indicatorColor: AppColors.primaryColor,
@@ -58,7 +58,7 @@ class MyThemeData {
     floatingActionButtonTheme: FloatingActionButtonThemeData(
       backgroundColor: AppColors.primaryColor,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     ),

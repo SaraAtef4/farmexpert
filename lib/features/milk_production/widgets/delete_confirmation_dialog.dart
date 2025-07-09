@@ -33,7 +33,9 @@ void showDeleteConfirmationDialog({
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () {
+                      onConfirm(); // بس كده، من غير pop
+                    },
                     child: Container(
                         height: 50,
                         width: 150,

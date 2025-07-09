@@ -1,9 +1,10 @@
 import 'dart:io';
 import 'package:farmxpert/features/home/screens/home_screen.dart';
-import 'package:farmxpert/features/reminders/screens/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../../core/theme/colors.dart';
 
 class SettingScreen extends StatefulWidget {
   @override

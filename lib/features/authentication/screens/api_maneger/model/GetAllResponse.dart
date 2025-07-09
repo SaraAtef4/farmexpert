@@ -1,64 +1,3 @@
-// class GetAllResponse {
-//   int? id;
-//   String? name;
-//   String? nationalID;
-//   int? age;
-//   String? experience;
-//   String? specialty;
-//   String? phone;
-//   int? salary;
-//   String? code;
-//   String? createdAt;
-//   String? email;
-//   String? imagePath;
-//
-//   GetAllResponse(
-//       {this.id,
-//         this.name,
-//         this.nationalID,
-//         this.age,
-//         this.experience,
-//         this.specialty,
-//         this.phone,
-//         this.salary,
-//         this.code,
-//         this.createdAt,
-//         this.email,
-//         this.imagePath});
-//
-//   GetAllResponse.fromJson(Map<String, dynamic> json) {
-//     id = json['id'];
-//     name = json['name'];
-//     nationalID = json['nationalID'];
-//     age = json['age'];
-//     experience = json['experience'];
-//     specialty = json['specialty'];
-//     phone = json['phone'];
-//     salary = json['salary'];
-//     code = json['code'];
-//     createdAt = json['createdAt'];
-//     email = json['email'];
-//     imagePath = json['imagePath'];
-//   }
-//
-//   Map<String, dynamic> toJson() {
-//     final Map<String, dynamic> data = new Map<String, dynamic>();
-//     data['id'] = this.id;
-//     data['name'] = this.name;
-//     data['nationalID'] = this.nationalID;
-//     data['age'] = this.age;
-//     data['experience'] = this.experience;
-//     data['specialty'] = this.specialty;
-//     data['phone'] = this.phone;
-//     data['salary'] = this.salary;
-//     data['code'] = this.code;
-//     data['createdAt'] = this.createdAt;
-//     data['email'] = this.email;
-//     data['imagePath'] = this.imagePath;
-//     return data;
-//   }
-// }
-
 class GetAllResponse {
   int? id;
   String? name;
@@ -71,7 +10,7 @@ class GetAllResponse {
   String? code;
   String? createdAt;
   String? email;
-  String? imagePath;
+  String? imageUrl;
 
   GetAllResponse({
     this.id,
@@ -85,7 +24,7 @@ class GetAllResponse {
     this.code,
     this.createdAt,
     this.email,
-    this.imagePath,
+    this.imageUrl,
   });
 
   // تحويل JSON إلى كائن
@@ -101,7 +40,7 @@ class GetAllResponse {
     code = json['code'];
     createdAt = json['createdAt'];
     email = json['email'];
-    imagePath = json['imagePath'];
+    imageUrl = json['imageUrl'] ?? json['imagePath'];
   }
 
   // تحويل الكائن إلى JSON
@@ -118,10 +57,15 @@ class GetAllResponse {
       'code': code,
       'createdAt': createdAt,
       'email': email,
-      'imagePath': imagePath,
+      'imageUrl': imageUrl,
     };
   }
 
+  // رابط الصورة الكامل
+  String? get fullImageUrl {
+    if (imageUrl == null || imageUrl!.isEmpty) return null;
+    return 'http://farmxpertapi.runasp.net$imageUrl';
+  }
   // تحويل String إلى int مع التعامل مع الحالات غير المتوافقة
   int? _parseInt(dynamic value) {
     if (value == null) return null;

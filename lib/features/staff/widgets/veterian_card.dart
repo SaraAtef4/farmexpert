@@ -3,15 +3,17 @@
 // import 'package:intl/intl.dart';
 // import 'dart:io';
 //
+// import '../../authentication/screens/api_maneger/model/GetAllResponse.dart';
+//
 // class VeterinarianCard extends StatefulWidget {
-//   final Map<String, dynamic> vet;
+//   final GetAllResponse veterinair;
 //   final VoidCallback onDelete;
 //   final VoidCallback onEdit;
 //   final VoidCallback onImagePick;
 //
 //   const VeterinarianCard({
 //     Key? key,
-//     required this.vet,
+//     required this.veterinair,
 //     required this.onDelete,
 //     required this.onEdit,
 //     required this.onImagePick,
@@ -23,6 +25,8 @@
 //
 // class _VeterinarianCardState extends State<VeterinarianCard> {
 //   bool _isExpanded = false;
+//   bool _showPassword = false;
+//   double rating = 0.0;
 //
 //   String _formatDate(dynamic date) {
 //     try {
@@ -50,35 +54,39 @@
 //         child: Column(
 //           crossAxisAlignment: CrossAxisAlignment.start,
 //           children: [
+//             // Header Section
 //             Row(
 //               children: [
+//                 // Profile Image
 //                 GestureDetector(
 //                   onTap: widget.onImagePick,
 //                   child: CircleAvatar(
 //                     radius: 30,
 //                     backgroundColor: Colors.green.shade100,
-//                     backgroundImage:
-//                         widget.vet["image"] != null &&
-//                                 File(widget.vet["image"]).existsSync()
-//                             ? FileImage(File(widget.vet["image"]))
-//                             : null,
-//                     child:
-//                         widget.vet["image"] == null
-//                             ? const Icon(
-//                               Icons.person,
-//                               size: 30,
-//                               color: Colors.green,
-//                             )
-//                             : null,
+//                     backgroundImage: widget.veterinair.imageUrl != null &&
+//                             widget.veterinair.imageUrl!.isNotEmpty
+//                         ? NetworkImage(
+//                             "http://farmxpertapi.runasp.net${widget.veterinair.imageUrl!}")
+//                         : null,
+//                     child: widget.veterinair["image"] == null
+//                         ? const Icon(
+//                             Icons.person,
+//                             size: 30,
+//                             color: Colors.green,
+//                           )
+//                         : null,
 //                   ),
 //                 ),
+//
 //                 const SizedBox(width: 16),
+//
+//                 // Name and Specialty
 //                 Expanded(
 //                   child: Column(
 //                     crossAxisAlignment: CrossAxisAlignment.start,
 //                     children: [
 //                       Text(
-//                         widget.vet["name"]?.toString() ??
+//                         widget.veterinair["name"]?.toString() ??
 //                             'Unnamed Veterinarian',
 //                         style: const TextStyle(
 //                           fontSize: 18,
@@ -88,7 +96,8 @@
 //                         overflow: TextOverflow.ellipsis,
 //                       ),
 //                       Text(
-//                         widget.vet["specialty"]?.toString() ?? 'No specialty',
+//                         widget.veterinair["specialty"]?.toString() ??
+//                             'No specialty',
 //                         style: const TextStyle(
 //                           fontSize: 14,
 //                           color: Colors.black54,
@@ -99,84 +108,133 @@
 //                       const SizedBox(height: 5),
 //                       RatingBar.builder(
 //                         initialRating:
-//                             (widget.vet["rating"] as num?)?.toDouble() ?? 0.0,
+//                             (widget.veterinair["rating"] as num?)?.toDouble() ??
+//                                 0.0,
 //                         minRating: 1,
 //                         direction: Axis.horizontal,
 //                         allowHalfRating: true,
 //                         itemCount: 5,
 //                         itemSize: 20,
-//                         itemBuilder:
-//                             (context, _) =>
-//                                 const Icon(Icons.star, color: Colors.amber),
+//                         itemBuilder: (context, _) =>
+//                             const Icon(Icons.star, color: Colors.amber),
 //                         onRatingUpdate: (rating) {
 //                           setState(() {
-//                             widget.vet["rating"] = rating;
+//                             widget.veterinair["rating"] = rating;
 //                           });
 //                         },
 //                       ),
 //                     ],
 //                   ),
 //                 ),
+//
+//                 // Action Buttons
 //                 IconButton(
-//                   onPressed: widget.onEdit,
-//                   icon: const Icon(Icons.edit, color: Colors.green),
+//                   icon: const Icon(Icons.edit),
+//                   color: Colors.green,
+//                   // onPressed: widget.onEdit,
+//                   onPressed: () {},
 //                 ),
 //                 IconButton(
-//                   onPressed: widget.onDelete,
-//                   icon: const Icon(Icons.delete, color: Colors.red),
+//                   icon: const Icon(Icons.delete),
+//                   color: Colors.red,
+//                   // onPressed: widget.onDelete,
+//                   onPressed: () {},
 //                 ),
 //               ],
 //             ),
+//
+//             // Expand/Collapse Button
 //             const SizedBox(height: 10),
 //             InkWell(
 //               onTap: () => setState(() => _isExpanded = !_isExpanded),
-//               child: Row(
-//                 mainAxisAlignment: MainAxisAlignment.center,
-//                 children: [
-//                   Text(
-//                     _isExpanded ? "Hide Details" : "Show Details",
-//                     style: const TextStyle(
-//                       color: Colors.green,
-//                       fontWeight: FontWeight.bold,
+//               child: Center(
+//                 child: Row(
+//                   mainAxisSize: MainAxisSize.min,
+//                   children: [
+//                     Text(
+//                       _isExpanded ? "Hide Details" : "Show Details",
+//                       style: const TextStyle(
+//                         color: Colors.green,
+//                         fontWeight: FontWeight.bold,
+//                       ),
 //                     ),
-//                   ),
-//                   const SizedBox(width: 8),
-//                   Icon(
-//                     _isExpanded ? Icons.arrow_drop_up : Icons.arrow_drop_down,
-//                     color: Colors.green,
-//                   ),
-//                 ],
+//                     const SizedBox(width: 8),
+//                     Icon(
+//                       _isExpanded ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+//                       color: Colors.green,
+//                     ),
+//                   ],
+//                 ),
 //               ),
 //             ),
+//
+//             // Expanded Details
 //             if (_isExpanded) ...[
 //               const SizedBox(height: 16),
-//               _buildDetailRow(
-//                 Icons.tag,
-//                 widget.vet["code"] ?? 'Not assigned',
-//               ),
+//               _buildDetailRow(Icons.tag,
+//                   widget.veterinair["code"]?.toString() ?? 'Not assigned'),
 //               _buildDetailRow(
 //                 Icons.credit_card,
-//                 widget.vet["nationalId"] ?? 'Not provided',
+//                 widget.veterinair["nationalId"]?.toString() ?? 'Not provided',
 //               ),
 //               _buildDetailRow(
 //                 Icons.phone,
-//                 widget.vet["phone"] ?? 'Not available',
+//                 widget.veterinair["phone"]?.toString() ?? 'Not available',
 //               ),
 //               _buildDetailRow(
+//                 Icons.email,
+//                 widget.veterinair["email"]?.toString() ?? 'Not provided',
+//               ),
+//
+//               // Password Row with Toggle Visibility
+//               Padding(
+//                 padding: const EdgeInsets.symmetric(vertical: 8.0),
+//                 child: Row(
+//                   children: [
+//                     Icon(Icons.lock, color: Colors.green, size: 24),
+//                     const SizedBox(width: 12),
+//                     Expanded(
+//                       child: Text(
+//                         _showPassword
+//                             ? widget.veterinair["password"] ?? 'Not set'
+//                             : '*******',
+//                         style: const TextStyle(
+//                           fontSize: 16,
+//                           color: Colors.black87,
+//                         ),
+//                       ),
+//                     ),
+//                     IconButton(
+//                       icon: Icon(
+//                         _showPassword ? Icons.visibility_off : Icons.visibility,
+//                         size: 20,
+//                         color: Colors.green,
+//                       ),
+//                       onPressed: () {
+//                         setState(() {
+//                           _showPassword = !_showPassword;
+//                         });
+//                       },
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//
+//               _buildDetailRow(
 //                 Icons.cake,
-//                 _formatNumber(widget.vet["age"], ' years'),
+//                 _formatNumber(widget.veterinair["age"], ' years'),
 //               ),
 //               _buildDetailRow(
 //                 Icons.attach_money,
-//                 _formatNumber(widget.vet["salary"], ' EGP'),
+//                 _formatNumber(widget.veterinair["salary"], ' EGP'),
 //               ),
 //               _buildDetailRow(
 //                 Icons.date_range,
-//                 _formatDate(widget.vet["hireDate"]),
+//                 _formatDate(widget.veterinair["hireDate"]),
 //               ),
 //               _buildDetailRow(
 //                 Icons.work_history,
-//                 _formatNumber(widget.vet["experienceYears"], ' years'),
+//                 _formatNumber(widget.veterinair["experienceYears"], ' years'),
 //               ),
 //             ],
 //           ],
@@ -204,13 +262,14 @@
 //   }
 // }
 
+
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:intl/intl.dart';
-import 'dart:io';
+import '../../authentication/screens/api_maneger/model/GetAllResponse.dart';
 
 class VeterinarianCard extends StatefulWidget {
-  final Map<String, dynamic> veterinair;
+  final GetAllResponse veterinair;
   final VoidCallback onDelete;
   final VoidCallback onEdit;
   final VoidCallback onImagePick;
@@ -230,19 +289,20 @@ class VeterinarianCard extends StatefulWidget {
 class _VeterinarianCardState extends State<VeterinarianCard> {
   bool _isExpanded = false;
   bool _showPassword = false;
+  double rating = 0.0;
 
-  String _formatDate(dynamic date) {
+  String _formatDate(String? date) {
     try {
-      if (date == null || date.toString().isEmpty) return 'Not set';
-      return DateFormat('yyyy-MM-dd').format(DateTime.parse(date.toString()));
+      if (date == null || date.isEmpty) return 'Not set';
+      return DateFormat('yyyy-MM-dd').format(DateTime.parse(date));
     } catch (e) {
-      return 'Invalid date';
+      return 'Invalid date format';
     }
   }
 
   String _formatNumber(dynamic value, [String suffix = '']) {
     if (value == null) return '0$suffix';
-    return '${value.toString()}$suffix';
+    return '$value$suffix';
   }
 
   @override
@@ -257,39 +317,32 @@ class _VeterinarianCardState extends State<VeterinarianCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Section
             Row(
               children: [
-                // Profile Image
                 GestureDetector(
                   onTap: widget.onImagePick,
                   child: CircleAvatar(
                     radius: 30,
                     backgroundColor: Colors.green.shade100,
-                    backgroundImage: widget.veterinair["image"] != null &&
-                            File(widget.veterinair["image"]).existsSync()
-                        ? FileImage(File(widget.veterinair["image"]))
+                    backgroundImage: widget.veterinair.imageUrl != null &&
+                        widget.veterinair.imageUrl!.isNotEmpty
+                        ? NetworkImage(
+                        "http://farmxpertapi.runasp.net${widget.veterinair.imageUrl!}")
                         : null,
-                    child: widget.veterinair["image"] == null
-                        ? const Icon(
-                            Icons.person,
-                            size: 30,
-                            color: Colors.green,
-                          )
+                    child: widget.veterinair.imageUrl == null ||
+                        widget.veterinair.imageUrl!.isEmpty
+                        ? const Icon(Icons.person,
+                        color: Colors.green, size: 30)
                         : null,
                   ),
                 ),
-
                 const SizedBox(width: 16),
-
-                // Name and Specialty
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        widget.veterinair["name"]?.toString() ??
-                            'Unnamed Veterinarian',
+                        widget.veterinair.name ?? 'Unnamed Veterinarian',
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -298,7 +351,7 @@ class _VeterinarianCardState extends State<VeterinarianCard> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        widget.veterinair["specialty"]?.toString() ?? 'No specialty',
+                        widget.veterinair.specialty ?? 'No specialty specified',
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.black54,
@@ -308,85 +361,64 @@ class _VeterinarianCardState extends State<VeterinarianCard> {
                       ),
                       const SizedBox(height: 5),
                       RatingBar.builder(
-                        initialRating:
-                            (widget.veterinair["rating"] as num?)?.toDouble() ?? 0.0,
+                        initialRating: rating,
                         minRating: 1,
                         direction: Axis.horizontal,
                         allowHalfRating: true,
                         itemCount: 5,
                         itemSize: 20,
                         itemBuilder: (context, _) =>
-                            const Icon(Icons.star, color: Colors.amber),
-                        onRatingUpdate: (rating) {
+                        const Icon(Icons.star, color: Colors.amber),
+                        onRatingUpdate: (newRating) {
                           setState(() {
-                            widget.veterinair["rating"] = rating;
+                            rating = newRating;
                           });
                         },
                       ),
                     ],
                   ),
                 ),
-
-                // Action Buttons
                 IconButton(
-                  icon: const Icon(Icons.edit),
-                  color: Colors.green,
-                  // onPressed: widget.onEdit,
-                  onPressed: () {},
+                  onPressed: widget.onEdit,
+                  icon: const Icon(Icons.edit, color: Colors.green),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete),
-                  color: Colors.red,
-                  // onPressed: widget.onDelete,
-                  onPressed: () {},
+                  onPressed: widget.onDelete,
+                  icon: const Icon(Icons.delete, color: Colors.red),
                 ),
               ],
             ),
-
-            // Expand/Collapse Button
             const SizedBox(height: 10),
             InkWell(
-              onTap: () => setState(() => _isExpanded = !_isExpanded),
-              child: Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      _isExpanded ? "Hide Details" : "Show Details",
-                      style: const TextStyle(
-                        color: Colors.green,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Icon(
-                      _isExpanded ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+              onTap: () {
+                setState(() {
+                  _isExpanded = !_isExpanded;
+                });
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    _isExpanded ? "Hide Details" : "Show Details",
+                    style: const TextStyle(
                       color: Colors.green,
+                      fontWeight: FontWeight.bold,
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    _isExpanded ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+                    color: Colors.green,
+                  ),
+                ],
               ),
             ),
-
-            // Expanded Details
             if (_isExpanded) ...[
               const SizedBox(height: 16),
-              _buildDetailRow(
-                  Icons.tag, widget.veterinair["code"]?.toString() ?? 'Not assigned'),
-              _buildDetailRow(
-                Icons.credit_card,
-                widget.veterinair["nationalId"]?.toString() ?? 'Not provided',
-              ),
-              _buildDetailRow(
-                Icons.phone,
-                widget.veterinair["phone"]?.toString() ?? 'Not available',
-              ),
-              _buildDetailRow(
-                Icons.email,
-                widget.veterinair["email"]?.toString() ?? 'Not provided',
-              ),
-
-              // Password Row with Toggle Visibility
+              _buildDetailRow(Icons.tag, widget.veterinair.code ?? 'Not assigned'),
+              _buildDetailRow(Icons.credit_card, widget.veterinair.nationalID ?? 'Not provided'),
+              _buildDetailRow(Icons.phone, widget.veterinair.phone ?? 'Not available'),
+              _buildDetailRow(Icons.email, widget.veterinair.email ?? 'Not provided'),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
@@ -395,9 +427,7 @@ class _VeterinarianCardState extends State<VeterinarianCard> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        _showPassword
-                            ? widget.veterinair["password"] ?? 'Not set'
-                            : '*******',
+                        _showPassword ? "********" : "*******",
                         style: const TextStyle(
                           fontSize: 16,
                           color: Colors.black87,
@@ -419,23 +449,10 @@ class _VeterinarianCardState extends State<VeterinarianCard> {
                   ],
                 ),
               ),
-
-              _buildDetailRow(
-                Icons.cake,
-                _formatNumber(widget.veterinair["age"], ' years'),
-              ),
-              _buildDetailRow(
-                Icons.attach_money,
-                _formatNumber(widget.veterinair["salary"], ' EGP'),
-              ),
-              _buildDetailRow(
-                Icons.date_range,
-                _formatDate(widget.veterinair["hireDate"]),
-              ),
-              _buildDetailRow(
-                Icons.work_history,
-                _formatNumber(widget.veterinair["experienceYears"], ' years'),
-              ),
+              _buildDetailRow(Icons.cake, _formatNumber(widget.veterinair.age, ' years')),
+              _buildDetailRow(Icons.attach_money, _formatNumber(widget.veterinair.salary, ' EGP')),
+              _buildDetailRow(Icons.date_range, _formatDate(widget.veterinair.createdAt)),
+              _buildDetailRow(Icons.work_history, _formatNumber(widget.veterinair.experience, ' years')),
             ],
           ],
         ),

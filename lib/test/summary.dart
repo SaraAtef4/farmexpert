@@ -70,7 +70,7 @@ class MilkSummaryScreen extends StatelessWidget {
       String day = DateFormat('E').format(entryDate);
 
       if (weeklyData.containsKey(day)) {
-        weeklyData[day] = (weeklyData[day] ?? 0) + entry.totalMilk;
+        weeklyData[day] = (weeklyData[day] ?? 0) + entry.total;
       }
     }
 

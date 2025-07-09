@@ -1,12 +1,14 @@
 import 'package:farmxpert/core/theme/colors.dart';
+import 'package:farmxpert/core/widgets/custom_app_bar.dart';
+import 'package:farmxpert/features/authentication/screens/api_maneger/APIManeger.dart';
 import 'package:farmxpert/test/widgets/milk_text_field.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/widgets/custom_date_picker.dart';
 import '../../../../test/tag_selection_screen.dart';
 import '../../models/milk_entry_model.dart';
@@ -38,12 +40,12 @@ class _MilkEntryScreenState extends State<MilkEntryScreen> {
     dateController.text = widget.editEntry?.date ??
         DateFormat('yyyy-MM-dd').format(DateTime.now());
     tagController.text = widget.editEntry?.tagNumber ?? '';
-    morningMilkController.text = widget.editEntry?.morningMilk.toString() ?? '';
-    noonMilkController.text = widget.editEntry?.noonMilk.toString() ?? '';
-    eveningMilkController.text = widget.editEntry?.eveningMilk.toString() ?? '';
-    totalMilkController.text = widget.editEntry?.totalMilk.toString() ?? '';
+    morningMilkController.text = widget.editEntry?.am.toString() ?? '';
+    noonMilkController.text = widget.editEntry?.noon.toString() ?? '';
+    eveningMilkController.text = widget.editEntry?.pm.toString() ?? '';
+    totalMilkController.text = widget.editEntry?.total.toString() ?? '';
     notesController.text = widget.editEntry?.notes ?? '';
-    cowsCountController.text = widget.editEntry?.cowsCount?.toString() ?? '';
+    cowsCountController.text = widget.editEntry?.countNumber?.toString() ?? '';
     isSingleCow = widget.editEntry?.tagNumber != null;
   }
 
@@ -54,83 +56,114 @@ class _MilkEntryScreenState extends State<MilkEntryScreen> {
     totalMilkController.text = (morning + noon + evening).toStringAsFixed(2);
   }
 
-  void saveData(BuildContext context) {
-    final milkProvider = Provider.of<MilkProvider>(context, listen: false);
 
-    bool isEditing = widget.editEntry != null;
-
-    if (milkProvider.isEntryExists(
-      dateController.text,
-      isSingleCow ? tagController.text : null,
-      excludeEntry: widget.editEntry,
-      isBulk: !isSingleCow,
-    )) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Entry for selected date already exists')),
-      );
+  void saveData(BuildContext context) async {
+    if (notesController.text.isEmpty) {
+      Fluttertoast.showToast(msg: 'Please enter notes before saving.');
       return;
     }
 
-    if (dateController.text.isEmpty ||
-        (isSingleCow && tagController.text.isEmpty) ||
-        (!isSingleCow && cowsCountController.text.isEmpty)) {
-      Fluttertoast.showToast(
-        msg: 'Please enter the required data',
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.grey.shade50,
-        textColor: Colors.black,
-        fontSize: 16.0,
-      );
+
+    // ✅ التحقق من وجود كمية واحدة على الأقل
+    if ((morningMilkController.text.isEmpty || double.tryParse(morningMilkController.text) == 0) &&
+        (noonMilkController.text.isEmpty || double.tryParse(noonMilkController.text) == 0) &&
+        (eveningMilkController.text.isEmpty || double.tryParse(eveningMilkController.text) == 0)) {
+      Fluttertoast.showToast(msg: 'Please enter milk amount in at least one of AM, Noon, or PM.');
       return;
     }
 
-    MilkEntryModel newEntry = MilkEntryModel(
-      date: dateController.text,
-      tagNumber: isSingleCow ? tagController.text : null,
-      morningMilk: double.tryParse(morningMilkController.text) ?? 0.0,
-      noonMilk: double.tryParse(noonMilkController.text) ?? 0.0,
-      eveningMilk: double.tryParse(eveningMilkController.text) ?? 0.0,
-      totalMilk: double.tryParse(totalMilkController.text) ?? 0.0,
-      notes: notesController.text,
-      cowsCount: isSingleCow ? null : int.tryParse(cowsCountController.text),
-    );
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("token");
 
-    if (isEditing) {
-      milkProvider.updateEntry(widget.editEntry!, newEntry);
+    if (token == null || token.isEmpty) {
+      Fluttertoast.showToast(msg: 'Authentication token not found.');
+      return;
+    }
+
+    double am = double.tryParse(morningMilkController.text) ?? 0.0;
+    double noon = double.tryParse(noonMilkController.text) ?? 0.0;
+    double pm = double.tryParse(eveningMilkController.text) ?? 0.0;
+    double total = am + noon + pm;
+    String notes = notesController.text;
+    String date = dateController.text;
+
+    if (widget.editEntry != null) {
+      // 🛠 تعديل السجل
+      final result = await ApiManager.editMilkProductionRecord(
+        id: widget.editEntry!.id!,
+        token: token,
+        tagNumber: tagController.text,
+        countNumber: cowsCountController.text,
+        am: am,
+        noon: noon,
+        pm: pm,
+        total: total,
+        notes: notes,
+        date: date,
+      );
+
+      if (result != null) {
+        Fluttertoast.showToast(msg: "✅ ${result.message}");
+        Navigator.pop(context, true); // ترجع true علشان reload
+      } else {
+        Fluttertoast.showToast(msg: "❌ Failed to update record");
+      }
     } else {
-      milkProvider.addEntry(newEntry);
-    }
+      // إضافة جديدة
+      if (isSingleCow) {
+        final result = await ApiManager.addMilkProductionRecord(
+          token: token,
+          tagNumber: tagController.text,
+          countNumber: "1",
+          am: am,
+          noon: noon,
+          pm: pm,
+          notes: notes,
+          date: date,
+        );
 
-    Navigator.pop(context);
+        if (result != null) {
+          Fluttertoast.showToast(msg: "✅ ${result.message}");
+          Navigator.pop(context, true);
+        } else {
+          Fluttertoast.showToast(msg: "❌ Failed to save milk record");
+        }
+      } else {
+        if (cowsCountController.text.isEmpty) {
+          Fluttertoast.showToast(msg: 'Please enter number of cows milked.');
+          return;
+        }
+
+        final bulkResult = await ApiManager.addMilkProductionBulk(
+          token: token,
+          countNumber: cowsCountController.text,
+          am: am,
+          noon: noon,
+          pm: pm,
+          total: total,
+          notes: notes,
+          date: "${date.trim()}T00:00:00",
+        );
+
+        if (bulkResult != null) {
+          Fluttertoast.showToast(msg: "✅ ${bulkResult.message}");
+          Navigator.pop(context, true);
+        } else {
+          Fluttertoast.showToast(msg: "❌ Failed to save bulk milk record");
+        }
+      }
+    }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        leading: Icon(
-          Icons.arrow_back,
-          color: AppColors.blackColor,
-          size: 20,
-        ),
-        centerTitle: false,
-        title: Text(
-          widget.editEntry == null ? "New record" : "Edite data",
-          style: GoogleFonts.inter(
-              fontWeight: FontWeight.w500,
-              color: AppColors.blackColor,
-              fontSize: 18),
-        ),
-        elevation: 1,
-        shadowColor: Colors.black.withOpacity(0.1),
-        leadingWidth: 40,
-      ),
+      appBar: CustomAppBar(title: "New record"),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Row(
               children: [
@@ -239,7 +272,8 @@ class _MilkEntryScreenState extends State<MilkEntryScreen> {
                   String? selectedTag = await Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => TagSelectionScreen(femalesOnly: true)),
+                        builder: (context) =>
+                            TagSelectionScreen(femalesOnly: true)),
                   );
                   if (selectedTag != null) {
                     setState(() {
@@ -305,8 +339,7 @@ class _MilkEntryScreenState extends State<MilkEntryScreen> {
               onTap: () {
                 totalMilkController.selection = TextSelection(
                     baseOffset: 0,
-                    extentOffset: totalMilkController
-                        .text.length);
+                    extentOffset: totalMilkController.text.length);
               },
             ),
             SizedBox(
@@ -336,11 +369,6 @@ class _MilkEntryScreenState extends State<MilkEntryScreen> {
                       fontWeight: FontWeight.w600),
                 ),
                 style: ElevatedButton.styleFrom(
-                  // side: BorderSide(
-                  //   color: Colors.blue,
-                  //   width: 1,
-                  //
-                  // ),
                   backgroundColor: AppColors.primaryColor,
                 ),
               ),
@@ -351,3 +379,6 @@ class _MilkEntryScreenState extends State<MilkEntryScreen> {
     );
   }
 }
+
+
+

@@ -1198,11 +1198,17 @@
 //   }
 // }
 
+import 'dart:io';
+
 import 'package:farmxpert/features/authentication/screens/api_maneger/APIManeger.dart';
 import 'package:farmxpert/features/authentication/screens/api_maneger/model/GetAllResponse.dart';
 import 'package:farmxpert/features/staff/widgets/veterian_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../core/widgets/custom_app_bar.dart';
 
 class VeterianScreen extends StatefulWidget {
   @override
@@ -1224,6 +1230,9 @@ class _VeterianScreenState extends State<VeterianScreen> {
   final experienceController = TextEditingController();
   final salaryController = TextEditingController();
 
+  File? selectedImage; // الصورة المختارة
+  File? editedImage;
+
   @override
   void initState() {
     super.initState();
@@ -1231,18 +1240,21 @@ class _VeterianScreenState extends State<VeterianScreen> {
   }
 
   Future<void> loadVeterinairs() async {
+    print("🌀 Entered loadVeterinarians");
+
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token") ?? "";
       if (token.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("لم يتم العثور على التوكن")),
+          SnackBar(content: Text("Token not found")),
         );
         return;
       }
       final data = await ApiManager.getAllVeterinairs(token);
       setState(() {
         veterinairs = data;
+        print("🔁 Reloaded veterians, new count: ${veterinairs.length}");
         isLoading = false;
       });
     } catch (e) {
@@ -1251,7 +1263,8 @@ class _VeterianScreenState extends State<VeterianScreen> {
         isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("حدث خطأ أثناء تحميل الاطباء")),
+        SnackBar(
+            content: Text(" An error occurred while loading veterinarians")),
       );
     }
   }
@@ -1259,282 +1272,539 @@ class _VeterianScreenState extends State<VeterianScreen> {
   final _formKey = GlobalKey<FormState>();
 
   Future<void> showAddVeterinairDialog() async {
+    bool _obscurePassword = true;
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Add Veterinair"),
-        content: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                TextFormField(
-                  controller: nameController,
-                  decoration: InputDecoration(
-                    labelText: "Name",
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.green)),
+      builder: (context) => StatefulBuilder(builder: (context, setState) {
+        return AlertDialog(
+          title: Text("Add Veterinarian"),
+          content: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: nameController,
+                    decoration: _inputDecoration("Name"),
+                    style: TextStyle(color: Colors.black),
+                    validator: (value) => value == null || value.isEmpty
+                        ? "Please enter name"
+                        : null,
                   ),
-                  validator: (value) =>
-                      value == null || value.isEmpty ? "Enter name" : null,
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  controller: emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    labelText: "Email",
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.green)),
+                  SizedBox(height: 10),
+                  TextFormField(
+                    controller: emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: _inputDecoration("Email"),
+                    style: TextStyle(color: Colors.black),
+                    validator: (value) {
+                      if (value == null || value.isEmpty)
+                        return "Please enter email";
+                      final emailRegex = RegExp(r'^[\w-\.]+@gmail\.com$');
+                      return emailRegex.hasMatch(value)
+                          ? null
+                          : "Email must end with @gmail.com";
+                    },
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) return "Enter email";
-                    final emailRegex =
-                        RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w]{2,4}$');
-                    return emailRegex.hasMatch(value)
-                        ? null
-                        : "Enter valid email";
-                  },
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  controller: phoneController,
-                  keyboardType: TextInputType.phone,
-                  decoration: InputDecoration(
-                    labelText: "Phone",
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.green)),
+                  SizedBox(height: 10),
+                  TextFormField(
+                    controller: phoneController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 11,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(11),
+                    ],
+                    decoration:
+                        _inputDecoration("Phone").copyWith(counterText: ''),
+                    style: TextStyle(color: Colors.black),
+                    validator: (value) {
+                      if (value == null || value.isEmpty)
+                        return "Please enter phone number";
+                      if (value.length != 11)
+                        return "Phone number must be 11 digits";
+                      return null;
+                    },
                   ),
-                  validator: (value) =>
-                      value == null || value.isEmpty ? "Enter phone" : null,
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  controller: passwordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: "Password",
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.green)),
+                  SizedBox(height: 10),
+                  TextFormField(
+                    controller: passwordController,
+                    obscureText: _obscurePassword,
+                    decoration: _inputDecoration("Password").copyWith(
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: Colors.grey,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
+                      ),
+                    ),
+                    style: TextStyle(color: Colors.black),
+                    validator: (value) => value == null || value.isEmpty
+                        ? "Please enter password"
+                        : null,
                   ),
-                  validator: (value) =>
-                      value == null || value.isEmpty ? "Enter password" : null,
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  controller: specialtyController,
-                  decoration: InputDecoration(
-                    labelText: "Specialty",
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.green)),
+                  SizedBox(height: 10),
+                  TextFormField(
+                    controller: specialtyController,
+                    decoration: _inputDecoration("Specialty"),
+                    style: TextStyle(color: Colors.black),
+                    validator: (value) => value == null || value.isEmpty
+                        ? "Please enter specialty"
+                        : null,
                   ),
-                  validator: (value) =>
-                      value == null || value.isEmpty ? "Enter specialty" : null,
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  controller: nationalIDController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: "National ID",
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.green)),
+                  SizedBox(height: 10),
+                  TextFormField(
+                    controller: nationalIDController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 14,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(14),
+                    ],
+                    decoration: _inputDecoration("National ID")
+                        .copyWith(counterText: ''),
+                    style: TextStyle(color: Colors.black),
+                    validator: (value) {
+                      if (value == null || value.isEmpty)
+                        return "Please enter national ID";
+                      if (value.length != 14)
+                        return "National ID must be 14 digits";
+                      return null;
+                    },
                   ),
-                  validator: (value) => value == null || value.isEmpty
-                      ? "Enter national ID"
-                      : null,
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  controller: ageController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: "Age",
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.green)),
+                  SizedBox(height: 10),
+                  TextFormField(
+                    controller: ageController,
+                    keyboardType: TextInputType.number,
+                    decoration: _inputDecoration("Age"),
+                    style: TextStyle(color: Colors.black),
+                    validator: (value) => value == null || value.isEmpty
+                        ? "Please enter age"
+                        : null,
                   ),
-                  validator: (value) =>
-                      value == null || value.isEmpty ? "Enter age" : null,
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  controller: experienceController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: "Experience",
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.green)),
+                  SizedBox(height: 10),
+                  TextFormField(
+                    controller: experienceController,
+                    keyboardType: TextInputType.number,
+                    decoration: _inputDecoration("Experience"),
+                    style: TextStyle(color: Colors.black),
+                    validator: (value) => value == null || value.isEmpty
+                        ? "Please enter experience"
+                        : null,
                   ),
-                  validator: (value) => value == null || value.isEmpty
-                      ? "Enter experience"
-                      : null,
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  controller: salaryController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: "Salary",
-                    border: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.green)),
+                  SizedBox(height: 10),
+                  TextFormField(
+                    controller: salaryController,
+                    keyboardType: TextInputType.number,
+                    decoration: _inputDecoration("Salary"),
+                    style: TextStyle(color: Colors.black),
+                    validator: (value) => value == null || value.isEmpty
+                        ? "Please enter salary"
+                        : null,
                   ),
-                  validator: (value) =>
-                      value == null || value.isEmpty ? "Enter salary" : null,
-                ),
-              ],
+                  SizedBox(height: 10),
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      final picker = ImagePicker();
+                      final picked =
+                          await picker.pickImage(source: ImageSource.gallery);
+                      if (picked != null) {
+                        setState(() {
+                          selectedImage = File(picked.path);
+                        });
+                      }
+                    },
+                    icon: Icon(Icons.image),
+                    label: Text("Choose Image"),
+                    style:
+                        ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                  ),
+                  if (selectedImage != null)
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Image.file(selectedImage!, height: 100),
+                    ),
+                ],
+              ),
             ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("Cancel"),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (_formKey.currentState!.validate()) {
-                final prefs = await SharedPreferences.getInstance();
-                final token = prefs.getString("token") ?? "";
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (_formKey.currentState!.validate()) {
+                  final prefs = await SharedPreferences.getInstance();
+                  final token = prefs.getString("token") ?? "";
 
-                if (token.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("لم يتم العثور على التوكن")),
-                  );
-                  return;
-                }
-
-                final veterinairData = {
-                  "Name": nameController.text.trim(),
-                  "Email": emailController.text.trim(),
-                  "Phone": phoneController.text.trim(),
-                  "Password": passwordController.text.trim(),
-                  "Specialty": specialtyController.text.trim(),
-                  "NationalID": nationalIDController.text.trim(),
-                  "Age": ageController.text.trim(),
-                  "Experience": experienceController.text.trim(),
-                  "Salary": salaryController.text.trim(),
-                };
-
-                try {
-                  final response =
-                      await ApiManager.addVeterinairs(veterinairData, token);
-
-                  if (response != null) {
+                  if (token.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("تمت إضافة العامل بنجاح!")),
+                      SnackBar(content: Text("Token not found")),
                     );
-                    await loadVeterinairs();
-                    Navigator.pop(context);
-                    clearFields();
-                  } else {
+                    return;
+                  }
+
+                  final vetData = {
+                    "Name": nameController.text.trim(),
+                    "Email": emailController.text.trim(),
+                    "Phone": phoneController.text.trim(),
+                    "Password": passwordController.text.trim(),
+                    "Specialty": specialtyController.text.trim(),
+                    "NationalID": nationalIDController.text.trim(),
+                    "Age": ageController.text.trim(),
+                    "Experience": experienceController.text.trim(),
+                    "Salary": salaryController.text.trim(),
+                  };
+
+                  try {
+                    final response = await ApiManager.addVeterinairs(
+                        vetData, token,
+                        image:
+                            selectedImage); // يمكنك تعديل الاسم addVeterinarian لو موجود
+
+                    if (response != null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text("Veterinarian added successfully!")),
+                      );
+                      await loadVeterinairs();
+                      Navigator.pop(context);
+                      clearFields();
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text(
+                                "Error occurred while adding the veterinarian")),
+                      );
+                    }
+                  } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("حدث خطأ أثناء إضافة العامل")),
+                      SnackBar(
+                          content: Text(
+                              "Error occurred while connecting to the server")),
                     );
                   }
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("حدث خطأ أثناء الاتصال بالخادم")),
-                  );
                 }
-              }
-            },
-            child: Text("Save"),
-          )
-        ],
+              },
+              child: Text("Save"),
+            )
+          ],
+        );
+      }),
+    );
+  }
+
+  InputDecoration _inputDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: TextStyle(color: Colors.black),
+      border: OutlineInputBorder(),
+      enabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.grey),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.green, width: 2),
       ),
     );
   }
 
+  // void showEditVeterinairDialog(
+  //     BuildContext context, Map<String, dynamic> veterinair) {
+  //   final nameController = TextEditingController(text: veterinair['name']);
+  //   final phoneController =
+  //       TextEditingController(text: veterinair['phoneNumber']);
+  //   final specialtyController =
+  //       TextEditingController(text: veterinair['specialty']);
+  //   final emailController = TextEditingController(text: veterinair['email']);
+  //   final salaryController =
+  //       TextEditingController(text: veterinair['salary'].toString());
+  //   final nationalIdController =
+  //       TextEditingController(text: veterinair['nationalId']);
+  //
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) {
+  //       return AlertDialog(
+  //         title: Text("تعديل الطبيب"),
+  //         content: SingleChildScrollView(
+  //           child: Column(
+  //             children: [
+  //               TextField(
+  //                   controller: nameController,
+  //                   decoration: InputDecoration(labelText: 'الاسم')),
+  //               TextField(
+  //                   controller: phoneController,
+  //                   decoration: InputDecoration(labelText: 'رقم الهاتف')),
+  //               // TextField(controller: addressController, decoration: InputDecoration(labelText: 'العنوان')),
+  //               TextField(
+  //                   controller: specialtyController,
+  //                   decoration: InputDecoration(labelText: 'الوظيفة')),
+  //               TextField(
+  //                   controller: emailController,
+  //                   decoration:
+  //                       InputDecoration(labelText: 'البريد الإلكتروني')),
+  //               TextField(
+  //                   controller: salaryController,
+  //                   decoration: InputDecoration(labelText: 'المرتب')),
+  //               TextField(
+  //                   controller: nationalIdController,
+  //                   decoration: InputDecoration(labelText: 'الرقم القومي')),
+  //             ],
+  //           ),
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () async {
+  //               SharedPreferences prefs = await SharedPreferences.getInstance();
+  //               String? token = prefs.getString("token"); // توحيد اسم التوكن
+  //
+  //               Map<String, String> updatedData = {
+  //                 "Name": nameController.text,
+  //                 "PhoneNumber": phoneController.text,
+  //                 // "Address": addressController.text,
+  //                 "Specialty": specialtyController.text,
+  //                 "Email": emailController.text,
+  //                 "Salary": salaryController.text,
+  //                 "NationalId": nationalIdController.text,
+  //               };
+  //
+  //               // التحقق من البيانات التي سيتم إرسالها
+  //               print("Sending data to update veterinair: $updatedData");
+  //
+  //               final response = await ApiManager.updateVeterinair(
+  //                 veterinair['id'],
+  //                 updatedData,
+  //                 token!,
+  //               );
+  //
+  //               if (response != null &&
+  //                   response.message == "Veterinair updated successfully") {
+  //                 await loadVeterinairs();
+  //                 Navigator.pop(context);
+  //                 ScaffoldMessenger.of(context).showSnackBar(
+  //                   SnackBar(content: Text('تم تعديل بيانات العامل بنجاح')),
+  //                 );
+  //               } else {
+  //                 print("Error response: ${response?.message}");
+  //                 ScaffoldMessenger.of(context).showSnackBar(
+  //                   SnackBar(content: Text('فشل في تعديل البيانات')),
+  //                 );
+  //               }
+  //             },
+  //             child: Text("حفظ"),
+  //           ),
+  //           TextButton(
+  //             onPressed: () => Navigator.pop(context),
+  //             child: Text("إلغاء"),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
   void showEditVeterinairDialog(
       BuildContext context, Map<String, dynamic> veterinair) {
+    final _formKey = GlobalKey<FormState>();
+
     final nameController = TextEditingController(text: veterinair['name']);
     final phoneController =
         TextEditingController(text: veterinair['phoneNumber']);
-    final jobController = TextEditingController(text: veterinair['job']);
+    final specialtyController =
+        TextEditingController(text: veterinair['specialty']);
     final emailController = TextEditingController(text: veterinair['email']);
     final salaryController =
         TextEditingController(text: veterinair['salary'].toString());
     final nationalIdController =
         TextEditingController(text: veterinair['nationalId']);
 
+    InputDecoration _inputDecoration(String label) {
+      return InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: Colors.black),
+        border: OutlineInputBorder(),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.grey),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.green, width: 2),
+        ),
+      );
+    }
+
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text("تعديل الطبيب"),
+          title: Text("Edit Veterinarian"),
           content: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextField(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  TextFormField(
                     controller: nameController,
-                    decoration: InputDecoration(labelText: 'الاسم')),
-                TextField(
+                    decoration: _inputDecoration('Name'),
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Name is required'
+                        : null,
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
                     controller: phoneController,
-                    decoration: InputDecoration(labelText: 'رقم الهاتف')),
-                // TextField(controller: addressController, decoration: InputDecoration(labelText: 'العنوان')),
-                TextField(
-                    controller: jobController,
-                    decoration: InputDecoration(labelText: 'الوظيفة')),
-                TextField(
+                    maxLength: 11, // ✅ يمنع إدخال أكثر من 11 رقم
+                    decoration: _inputDecoration('Phone Number'),
+                    keyboardType: TextInputType.phone,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Phone number is required';
+                      } else if (!RegExp(r'^\d{11}$').hasMatch(value)) {
+                        return 'Phone number must be 11 digits';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: specialtyController,
+                    decoration: _inputDecoration('Specialty'),
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Specialty is required'
+                        : null,
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
                     controller: emailController,
-                    decoration:
-                        InputDecoration(labelText: 'البريد الإلكتروني')),
-                TextField(
+                    decoration: _inputDecoration('Email'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Email is required';
+                      } else if (!RegExp(r'^[a-zA-Z0-9._%+-]+@gmail\.com$')
+                          .hasMatch(value)) {
+                        return 'Email must be in the format user@gmail.com';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
                     controller: salaryController,
-                    decoration: InputDecoration(labelText: 'المرتب')),
-                TextField(
+                    decoration: _inputDecoration('Salary'),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Salary is required';
+                      }
+                      try {
+                        double.parse(value);
+                        return null;
+                      } catch (e) {
+                        return 'Salary must be a number';
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
                     controller: nationalIdController,
-                    decoration: InputDecoration(labelText: 'الرقم القومي')),
-              ],
+                    maxLength: 14, // ✅ يمنع إدخال أكثر من 14 رقم
+                    decoration: _inputDecoration('National ID'),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'National ID is required';
+                      } else if (!RegExp(r'^\d{14}$').hasMatch(value)) {
+                        return 'National ID must be 14 digits';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () async {
-                SharedPreferences prefs = await SharedPreferences.getInstance();
-                String? token =
-                    prefs.getString("token"); // توحيد اسم التوكن
-
-                Map<String, String> updatedData = {
-                  "Name": nameController.text,
-                  "PhoneNumber": phoneController.text,
-                  // "Address": addressController.text,
-                  "Job": jobController.text,
-                  "Email": emailController.text,
-                  "Salary": salaryController.text,
-                  "NationalId": nationalIdController.text,
-                };
-
-                // التحقق من البيانات التي سيتم إرسالها
-                print("Sending data to update veterinair: $updatedData");
-
-                final response = await ApiManager.updateVeterinair(
-                  veterinair['id'],
-                  updatedData,
-                  token!,
-                );
-
-                if (response != null &&
-                    response.message == "Veterinair updated successfully") {
-                  await loadVeterinairs();
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('تم تعديل بيانات العامل بنجاح')),
-                  );
-                } else {
-                  print("Error response: ${response?.message}");
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('فشل في تعديل البيانات')),
-                  );
-                }
-              },
-              child: Text("حفظ"),
+            Center(
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  final picker = ImagePicker();
+                  final picked =
+                      await picker.pickImage(source: ImageSource.gallery);
+                  if (picked != null) {
+                    editedImage = File(picked.path);
+                  }
+                },
+                icon: Icon(Icons.image),
+                label: Text("Change Image"),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+              ),
             ),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("إلغاء"),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () async {
+                    if (_formKey.currentState!.validate()) {
+                      SharedPreferences prefs =
+                          await SharedPreferences.getInstance();
+                      String? token = prefs.getString("token");
+
+                      Map<String, String> updatedData = {
+                        "Name": nameController.text,
+                        "PhoneNumber": phoneController.text,
+                        "specialty": specialtyController.text,
+                        "Email": emailController.text,
+                        "Salary": double.parse(salaryController.text).toString(), // ✅ تحويل مباشر لـ double ثم String
+                        "NationalId": nationalIdController.text,
+                      };
+
+                      final response = await ApiManager.updateVeterinair(
+                        veterinair['id'],
+                        updatedData,
+                        token!,
+                        image: editedImage,
+                      );
+
+                      if (response != null &&
+                          response.message ==
+                              "Veterinair updated successfully") {
+                        await loadVeterinairs();
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text(
+                                  'Veterinarian data updated successfully')),
+                        );
+                      } else {
+                        print("Error response: ${response?.message}");
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Failed to update data')),
+                        );
+                      }
+                    }
+                  },
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                  child: Text("Save"),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
+                  child: Text("Cancel"),
+                ),
+              ],
             ),
+            const SizedBox(height: 10),
           ],
         );
       },
@@ -1556,24 +1826,7 @@ class _VeterianScreenState extends State<VeterianScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.green,
-        title: const Text(
-          "Farm Veterinairs",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        // actions: [
-        //   IconButton(
-        //     icon: const Icon(Icons.sort, color: Colors.white),
-        //     onPressed: () => workerProvider.sortByName(),
-        //   ),
-        // ],
-      ),
+      appBar: CustomAppBar(title: "Farm Veterinaires",),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : veterinairs.isEmpty
@@ -1583,98 +1836,88 @@ class _VeterianScreenState extends State<VeterianScreen> {
                   itemBuilder: (context, index) {
                     final veterinair = veterinairs[index];
                     return VeterinarianCard(
-                      veterinair: {
-                        "name": veterinair.name,
-                        "specialty": veterinair.specialty,
-                        "image": veterinair.imagePath, // لو في صورة للعامل
-                        "phone": veterinair.phone,
-                        "email": veterinair.email,
-                        "code": veterinair.code,
-                        "nationalId": veterinair.nationalID,
-                        "age": veterinair.age,
-                        "salary": veterinair.salary,
-                        "experienceYears": veterinair.experience,
-                      },
-                      // onDelete: () async {
-                      //   final confirm = await showDialog<bool>(
-                      //     context: context,
-                      //     builder: (ctx) => AlertDialog(
-                      //       title: const Text("Confirm Deletion"),
-                      //       content: const Text(
-                      //           "Are you sure you want to delete this vet?"),
-                      //       actions: [
-                      //         TextButton(
-                      //           child: const Text("Cancel"),
-                      //           onPressed: () => Navigator.of(ctx).pop(false),
-                      //         ),
-                      //         TextButton(
-                      //           child: const Text("Delete"),
-                      //           onPressed: () => Navigator.of(ctx).pop(true),
-                      //         ),
-                      //       ],
-                      //     ),
-                      //   );
-                      //
-                      //   if (confirm == true) {
-                      //     try {
-                      //       final prefs = await SharedPreferences.getInstance();
-                      //       final token = prefs.getString('token');
-                      //
-                      //       print(
-                      //           "🚨 Token: $token"); // قم بطباعة الـ token للتحقق من وجوده
-                      //
-                      //       if (token == null) {
-                      //         ScaffoldMessenger.of(context).showSnackBar(
-                      //           const SnackBar(
-                      //               content: Text(
-                      //                   "Authorization token is missing.")),
-                      //         );
-                      //         return;
-                      //       }
-                      //
-                      //       final deleteResponse =
-                      //           await ApiManager.deleteVeterinair(
-                      //               veterinair.id!);
-                      //
-                      //       if (deleteResponse != null &&
-                      //           deleteResponse.success) {
-                      //         setState(() {
-                      //           isLoading = true;
-                      //         });
-                      //         await loadVeterinairs();
-                      //         ScaffoldMessenger.of(context).showSnackBar(
-                      //           SnackBar(content: Text(deleteResponse.message)),
-                      //         );
-                      //       } else {
-                      //         ScaffoldMessenger.of(context).showSnackBar(
-                      //           SnackBar(
-                      //               content: Text(deleteResponse?.message ??
-                      //                   "Failed to delete vet.")),
-                      //         );
-                      //       }
-                      //     } catch (e) {
-                      //       ScaffoldMessenger.of(context).showSnackBar(
-                      //         SnackBar(
-                      //             content: Text("Error deleting vet: $e")),
-                      //       );
-                      //     }
-                      //   }
-                      // },
-                      onDelete: () {
+                      veterinair:
+                          veterinair, // ✅ كائن من نوع GetAllResponse مباشرة
+                      onDelete: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text("Confirm Deletion"),
+                            content: const Text(
+                                "Are you sure you want to delete this vet?"),
+                            actions: [
+                              TextButton(
+                                child: const Text("Cancel"),
+                                onPressed: () => Navigator.of(ctx).pop(false),
+                              ),
+                              TextButton(
+                                child: const Text("Delete"),
+                                onPressed: () => Navigator.of(ctx).pop(true),
+                              ),
+                            ],
+                          ),
+                        );
 
+                        if (confirm == true) {
+                          try {
+                            final prefs = await SharedPreferences.getInstance();
+                            final token = prefs.getString('token');
+
+                            print("🚨 Token: $token");
+
+                            if (token == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        "Authorization token is missing.")),
+                              );
+                              return;
+                            }
+
+                            final deleteResponse =
+                                await ApiManager.deleteVeterinair(
+                                    veterinair.id!, token // ✅ ID البيطري
+                                    );
+
+                            if (deleteResponse != null &&
+                                deleteResponse.success) {
+                              await loadVeterinairs(); // ✅ إعادة تحميل القائمة
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(deleteResponse.message)),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    deleteResponse?.message ??
+                                        "Failed to delete veterinarian.",
+                                  ),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content:
+                                      Text("Error deleting veterinarian: $e")),
+                            );
+                          }
+                        }
                       },
 
                       onEdit: () => showEditVeterinairDialog(context, {
                         'id': veterinair.id,
                         'name': veterinair.name,
                         'phoneNumber': veterinair.phone,
-                        'job': veterinair.specialty,
+                        'specialty': veterinair.specialty,
                         'email': veterinair.email,
                         'salary': veterinair.salary,
                         'nationalId': veterinair.nationalID,
                       }),
-                      onImagePick: () {},
-                      // onImagePick: () => _pickImage(index), // لو في دالة لاختيار صورة
+
+                      onImagePick: () {
+                        // ✅ هنا تقدر تضيف دالة اختيار صورة لو حابب
+                      },
                     );
                   },
                 ),
@@ -1684,6 +1927,5 @@ class _VeterianScreenState extends State<VeterianScreen> {
         backgroundColor: Colors.green, // نفس اللون زي الأول
       ),
     );
-
   }
 }

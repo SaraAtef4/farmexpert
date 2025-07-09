@@ -1,7 +1,11 @@
 import 'package:farmxpert/features/reminders/screens/add_task_bottom_sheet.dart';
-import 'package:farmxpert/features/reminders/screens/app_colors.dart';
 import 'package:farmxpert/features/reminders/screens/remnder_tab.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import '../../../core/theme/colors.dart';
+import '../../../core/widgets/custom_app_bar.dart';
+
 
 class RemederHomePage extends StatefulWidget {
   const RemederHomePage({super.key});
@@ -15,18 +19,9 @@ class _RemederHomePageState extends State<RemederHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      backgroundColor: AppColors.secondary,
-      appBar: AppBar(
-        toolbarHeight: 100,
-        backgroundColor: AppColors.primary,
-        title: Text(
-          "Reminder",
-          style: TextStyle(
-            fontSize: 30,
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+      backgroundColor: Colors.grey[200],
+      appBar: CustomAppBar(
+        title: 'Reminder',
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton(
@@ -34,27 +29,58 @@ class _RemederHomePageState extends State<RemederHomePage> {
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
-            builder: (context) => Padding(
-              padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom),
-              child: AddTaskBottomSheet(),
+            backgroundColor: Colors.transparent,
+            builder: (context) => DraggableScrollableSheet(
+              initialChildSize: 0.8,
+              minChildSize: 0.5,
+              maxChildSize: 0.95,
+              expand: false,
+              builder: (context, scrollController) {
+                return Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+                  ),
+                  child: SingleChildScrollView(
+                    controller: scrollController,
+                    padding: EdgeInsets.only(
+                      left: 16,
+                      right: 16,
+                      top: 16,
+                      bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+                    ),
+                    child: AddTaskBottomSheet(),
+                  ),
+                );
+              },
             ),
           );
         },
-        child: Icon(
-          Icons.add,
-          color: Colors.white,
-          size: 30,
-        ),
+        child: Icon(Icons.add, color: Colors.white),
         backgroundColor: AppColors.primary,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
-          side: BorderSide(
-            color: Colors.white70,
-            width: 4,
-          ),
-        ),
       ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      //     showDialog(
+      //       context: context,
+      //       builder: (context) => AddTaskDialog(),
+      //     );
+      //   },
+      //   child: Icon(
+      //     Icons.add,
+      //     color: Colors.white,
+      //     size: 30.r,
+      //   ),
+      //   backgroundColor: AppColors.primary,
+      //   shape: RoundedRectangleBorder(
+      //     borderRadius: BorderRadius.circular(30),
+      //     side: BorderSide(
+      //       color: Colors.white70,
+      //       width: 4.h,
+      //     ),
+      //   ),
+      // ),
+
       body: RemnderTap(),
     );
   }

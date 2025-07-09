@@ -11,9 +11,36 @@ import 'package:provider/provider.dart';
 import '../../../core/widgets/animated_counter.dart';
 import '../../../data/providers/milk_provider.dart';
 
-class MilkProductionScreen extends StatelessWidget {
+class MilkProductionScreen extends StatefulWidget {
+  @override
+  State<MilkProductionScreen> createState() => _MilkProductionScreenState();
+}
+
+class _MilkProductionScreenState extends State<MilkProductionScreen> {
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final milkProvider = Provider.of<MilkProvider>(context, listen: false);
+      await milkProvider.loadEntriesFromAPI();
+    });
+  }
+
+
   @override
   Widget build(BuildContext context) {
+    final milkProvider = Provider.of<MilkProvider>(context);
+
+    if (milkProvider.isLoading) {
+      // لو البيانات بتتحمل، عرض مؤشر التحميل في منتصف الشاشة
+      return Scaffold(
+        appBar: CustomAppBar(title: 'Milk Production'),
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // لما البيانات تكون محملة، عرض الشاشة الرئيسية
     return Scaffold(
       appBar: CustomAppBar(title: 'Milk Production'),
       body: Container(
@@ -25,13 +52,13 @@ class MilkProductionScreen extends StatelessWidget {
           ),
         ),
         child: Padding(
-          padding:  EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header Section
               Padding(
-                padding:  EdgeInsets.only(bottom: 20.0, top: 10.0),
+                padding: EdgeInsets.only(bottom: 20.0, top: 10.0),
                 child: Text(
                   'Milk Management',
                   style: GoogleFonts.inter(
@@ -95,7 +122,10 @@ class MilkProductionScreen extends StatelessWidget {
                       icon: Icons.add_circle_outline,
                       color: Color(0xFFFFF3E0),
                       iconColor: Colors.orange,
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context)=> MilkEntryScreen()))
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => MilkEntryScreen()),
+                      ),
                     ),
                     _buildActionCard(
                       context,
@@ -207,7 +237,6 @@ class MilkProductionScreen extends StatelessWidget {
       ),
     );
   }
-
 
   Widget _buildSummaryItemAnimated({
     required String title,

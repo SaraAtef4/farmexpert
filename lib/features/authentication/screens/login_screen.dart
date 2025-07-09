@@ -178,12 +178,17 @@
 //   }
 // }
 
+import 'dart:convert';
+
 import 'package:farmxpert/core/theme/colors.dart';
 import 'package:farmxpert/features/authentication/screens/api_maneger/APIManeger.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/widgets/custtom_buttom.dart';
 import '../widgets/login_form.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:android_intent_plus/android_intent.dart';
+import 'dart:io';
 
 class LoginScreen extends StatefulWidget {
   static const String routeName = "login";
@@ -216,46 +221,78 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-
-  // Future<void> _login() async {
-  //   if (_formKey.currentState?.validate() ?? false) {
-  //     setState(() => _isLoading = true);
-  //
-  //     final authResponse = await apiManager.loginUser(
-  //       _emailController.text,
-  //       _passwordController.text,
-  //     );
-  //
-  //     setState(() => _isLoading = false);
-  //
-  //     if (authResponse != null && authResponse.token != null) {
-  //       String token = authResponse.token!;
-  //
-  //       final prefs = await SharedPreferences.getInstance();
-  //       await prefs.setString('token', token);
-  //       await prefs.setBool('remember_me', _isRememberMeChecked);
-  //       await prefs.setString('user_role', widget.role); // حفظ الدور
-  //
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text("تم تسجيل الدخول بنجاح!")),
-  //       );
-  //
-  //       // التوجيه حسب الدور
-  //       if (widget.role == 'manager') {
-  //         Navigator.pushReplacementNamed(context, '/manager-home');
-  //       } else if (widget.role == 'worker') {
-  //         Navigator.pushReplacementNamed(context, '/worker-home');
-  //       }
-  //       // else {
-  //       //   Navigator.pushReplacementNamed(context, '/home');
-  //       // }
-  //     } else {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text("خطأ في البريد الإلكتروني أو كلمة المرور")),
-  //       );
-  //     }
-  //   }
-  // }
+//   Future<void> _login() async {
+//
+//     if (_formKey.currentState?.validate() ?? false) {
+//       setState(() => _isLoading = true);
+//
+//       final authResponse = await apiManager.loginUser(
+//         _emailController.text,
+//         _passwordController.text,
+//       );
+//
+//       setState(() => _isLoading = false);
+//
+//       if (authResponse != null && authResponse.token != null) {
+//         String token = authResponse.token!;
+//         String? serverRole = authResponse.role;
+//         print("✅ Extracted Role from Token: $serverRole"); // الدور من السيرفر
+//         String selectedRole =
+//             widget.role; // الدور اللي المستخدم اختاره من الشاشة السابقة
+//
+//         if (serverRole != null &&
+//             serverRole.toLowerCase() == selectedRole.toLowerCase()) {
+//           final decodedPayload = jsonDecode(utf8.decode(
+//               base64Url.decode(base64Url.normalize(token.split('.')[1]))));
+//
+// // الإيميل الحقيقي في الحقل الطويل دا:
+//           final email = decodedPayload[
+//               "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"];
+//           final role = decodedPayload[
+//               "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+//
+// // اسم وصورة مش موجودين في الـ token، فممكن تبقى null
+//           final name = decodedPayload["name"]; // غالباً null
+//           final image = decodedPayload["imageUrl"]; // غالباً null
+//           final prefs = await SharedPreferences.getInstance();
+//           await prefs.setString('user_email', email ?? '');
+//           await prefs.setString('user_name', name ?? '');
+//           await prefs.setString('user_image', image ?? '');
+//           await prefs.setString('token', token);
+//           await prefs.setBool('remember_me', _isRememberMeChecked);
+//           await prefs.setString(
+//               'user_role', serverRole); // نحفظ الدور الحقيقي من السيرفر
+//
+//           ScaffoldMessenger.of(context).showSnackBar(
+//             const SnackBar(content: Text("تم تسجيل الدخول بنجاح!")),
+//           );
+//
+//           await Future.delayed(Duration(milliseconds: 300));
+//
+//           final lowerRole = serverRole.toLowerCase();
+//
+//           if (lowerRole == 'manager') {
+//             Navigator.pushReplacementNamed(context, '/manager-home');
+//           } else if (lowerRole == 'worker' || lowerRole == 'veterinar') {
+//             // "Staff" roles
+//             Navigator.pushReplacementNamed(context, '/worker-home');
+//           } else {
+//             // دور غير معروف (ممكن نعرض رسالة أو نرجع لصفحة اختيار الدور)
+//             ScaffoldMessenger.of(context).showSnackBar(
+//               SnackBar(
+//                 content: Text("⚠️ دور غير مدعوم: $serverRole"),
+//                 backgroundColor: Colors.red,
+//               ),
+//             );
+//           }
+//         } else {
+//           ScaffoldMessenger.of(context).showSnackBar(
+//             SnackBar(content: Text("خطأ في البريد الإلكتروني أو كلمة المرور")),
+//           );
+//         }
+//       }
+//     }
+//   }
 
   Future<void> _login() async {
     if (_formKey.currentState?.validate() ?? false) {
@@ -271,14 +308,35 @@ class _LoginScreenState extends State<LoginScreen> {
       if (authResponse != null && authResponse.token != null) {
         String token = authResponse.token!;
         String? serverRole = authResponse.role;
-        print("✅ Extracted Role from Token: $serverRole"); // الدور من السيرفر
-        String selectedRole = widget.role; // الدور اللي المستخدم اختاره من الشاشة السابقة
+        print("✅ Extracted Role from Token: $serverRole");
+        String selectedRole = widget.role;
 
-        if (serverRole != null && serverRole.toLowerCase() == selectedRole.toLowerCase()) {
+        final lowerServerRole = serverRole?.toLowerCase() ?? '';
+        final lowerSelectedRole = selectedRole.toLowerCase();
+
+        final bothAreStaff =
+            (lowerSelectedRole == 'worker' || lowerSelectedRole == 'veterinar') &&
+                (lowerServerRole == 'worker' || lowerServerRole == 'veterinar');
+
+        if (lowerServerRole == lowerSelectedRole || bothAreStaff) {
+          final decodedPayload = jsonDecode(
+              utf8.decode(base64Url.decode(base64Url.normalize(token.split('.')[1])))
+          );
+
+          final email = decodedPayload[
+          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"];
+          final role = decodedPayload[
+          "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+          final name = decodedPayload["name"];
+          final image = decodedPayload["imageUrl"];
+
           final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('user_email', email ?? '');
+          await prefs.setString('user_name', name ?? '');
+          await prefs.setString('user_image', image ?? '');
           await prefs.setString('token', token);
           await prefs.setBool('remember_me', _isRememberMeChecked);
-          await prefs.setString('user_role', serverRole); // نحفظ الدور الحقيقي من السيرفر
+          await prefs.setString('user_role', serverRole ?? '');
 
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("تم تسجيل الدخول بنجاح!")),
@@ -286,18 +344,20 @@ class _LoginScreenState extends State<LoginScreen> {
 
           await Future.delayed(Duration(milliseconds: 300));
 
-
-          // توجيه حسب الدور الحقيقي
-          if (serverRole.toLowerCase() == 'manager') {
-            print("serverRole $serverRole");
-
+          if (lowerServerRole == 'manager') {
             Navigator.pushReplacementNamed(context, '/manager-home');
-          } else if (serverRole.toLowerCase() == 'worker') {
-            print("serverRole $serverRole");
+          } else if (lowerServerRole == 'worker' || lowerServerRole == 'veterinar') {
             Navigator.pushReplacementNamed(context, '/worker-home');
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("⚠️ دور غير مدعوم: $serverRole"),
+                backgroundColor: Colors.red,
+              ),
+            );
           }
         } else {
-          // الدور لا يطابق ما تم اختياره
+          // الدور ما يطابقش المطلوب
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text("⚠️ الدور المختار لا يطابق الحساب المُسجل به!"),
@@ -312,7 +372,6 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -422,13 +481,45 @@ class _LoginScreenState extends State<LoginScreen> {
                           Text("Don’t have an account?",
                               style: TextStyle(color: Color(0xffCCCCCC))),
                           TextButton(
-                            onPressed: () {},
-                            child: Text('Visit Website',
-                                style:
-                                    TextStyle(color: AppColors.primaryColor)),
+                            onPressed: () async {
+                              final url = 'http://farmxpertweb.runasp.net';
+                              if (Platform.isAndroid) {
+                                final intent = AndroidIntent(
+                                  action: 'action_view',
+                                  data: url,
+                                );
+                                await intent.launch();
+                              } else {
+                                // لو على iOS
+                                final Uri uri = Uri.parse(url);
+                                if (await canLaunchUrl(uri)) {
+                                  await launchUrl(uri);
+                                } else {
+                                  print('Could not launch $url');
+                                }
+                              }
+                            },
+                            child: Text(
+                              'Visit Website',
+                              style: TextStyle(color: AppColors.primaryColor),
+                            ),
                           ),
                         ],
                       ),
+
+                      // Row(
+                      //   mainAxisAlignment: MainAxisAlignment.center,
+                      //   children: [
+                      //     Text("Don’t have an account?",
+                      //         style: TextStyle(color: Color(0xffCCCCCC))),
+                      //     TextButton(
+                      //       onPressed: () {},
+                      //       child: Text('Visit Website',
+                      //           style:
+                      //               TextStyle(color: AppColors.primaryColor)),
+                      //     ),
+                      //   ],
+                      // ),
                     ),
                   ],
                 ),

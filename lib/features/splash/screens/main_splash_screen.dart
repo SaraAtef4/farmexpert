@@ -7,6 +7,8 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../../../core/widgets/custtom_buttom.dart';
 import '../../../routes/app_routes.dart';
 import '../providers/splash_provider.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 
 class MainSplashScreen extends StatelessWidget {
   final PageController _pageController = PageController();
@@ -34,20 +36,20 @@ class MainSplashScreen extends StatelessWidget {
               children: [
                 // الصفحة الأولى
                 SplashContent(
-                  imagePath: 'assets/images/splash0.jpg',
+                  imagePath: 'assets/images/splash_one.jpg',
                   text: 'Welcome To \n FarmXpert',
                   isFirstPage: true, // تفعيل التنسيق الخاص
                   customText: 'The Best App For Manage Your Farm', // النص الإضافي
                 ),
                 // الصفحة الثانية
                 SplashContent(
-                  imagePath: 'assets/images/splash8.jpg',
+                  imagePath: 'assets/images/splash_two.jpg',
                   text: 'Track. Manage. Grow',
                   isSecondPage: true, // تفعيل التنسيق الخاص
                 ),
                 // الصفحة الثالثة
                 SplashContent(
-                  imagePath: 'assets/images/splash9.jpg',
+                  imagePath: 'assets/images/splash_three.jpg',
                   text: "Let's boost your farm productivity.",
                   isThirdPage: true, // تفعيل التنسيق الخاص
                 ),
@@ -56,7 +58,7 @@ class MainSplashScreen extends StatelessWidget {
           ),
           // SmoothPageIndicator و الزر في أسفل الشاشة
           Positioned(
-            bottom: 50, // المسافة من الأسفل
+            bottom: 50.h, // المسافة من الأسفل
             left: 0,
             right: 0,
             child: Column(
@@ -67,11 +69,11 @@ class MainSplashScreen extends StatelessWidget {
                   count: 3,
                   effect: ExpandingDotsEffect(
                     activeDotColor: AppColors.whiteColor,
-                    dotHeight: 8,
-                    dotWidth: 8,
+                    dotHeight: 8.h,
+                    dotWidth: 8.h,
                   ),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: 16.h),
                 CustomButton(
                   text:
                   Provider.of<SplashProvider>(context).currentPage == 2
@@ -80,19 +82,8 @@ class MainSplashScreen extends StatelessWidget {
                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Colors.white, // لون النص أبيض
                     fontWeight: FontWeight.bold,
+                     fontSize: 36.sp,
                   ),
-                  // ontap: () {
-                  //   final currentPage =
-                  //       Provider.of<SplashProvider>(context, listen: false).currentPage;
-                  //   if (currentPage == 2) {
-                  //     Navigator.pushReplacementNamed(context, AppRoutes.chooseRole);
-                  //   } else {
-                  //     _pageController.nextPage(
-                  //       duration: Duration(milliseconds: 300),
-                  //       curve: Curves.easeInOut,
-                  //     );
-                  //   }
-                  // },
                   ontap: () async {
                     final currentPage = Provider.of<SplashProvider>(context, listen: false).currentPage;
 

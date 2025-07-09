@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import '../../features/authentication/screens/api_maneger/APIManeger.dart';
+import '../../features/authentication/screens/api_maneger/model/AddEventCattleActivityINDResponse.dart';
 import '../../features/cattle_activity/models/activity_model.dart';
 
 class CattleEventsProvider with ChangeNotifier {
@@ -10,12 +12,55 @@ class CattleEventsProvider with ChangeNotifier {
   DateTime? filterEndDate;
   bool? filterIsIndividual;
 
+  List<String> _eventTypes = [];
+  bool _isLoading = false;
+  String? _error;
 
+  List<String> get eventTypes => _eventTypes;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
+
+  Future<void> fetchEventTypesIND() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final result = await ApiManager().getEventTypesCattleActivityIND();
+      if (result != null) {
+        _eventTypes = result.eventTypes;
+      } else {
+        _error = "Failed to load event types";
+      }
+    } catch (e) {
+      _error = e.toString();
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
   List<CattleActivityEvent> get allEvents => List.unmodifiable(_events);
+
+
 
   void addEvent(CattleActivityEvent event) {
     _events.add(event);
     notifyListeners();
+  }
+  void addEventFromResponse(AddEventCattleActivityINDResponse response, bool isIndividual) {
+    final event = CattleActivityEvent(
+      cattleId: response.eventData.tagNumber,
+      eventType: response.eventData.EventType.toString(),
+      date: DateTime.parse(response.eventData.date.toString()),
+      notes: '',
+      isIndividual: isIndividual,
+      additionalData: {
+        "medicine": response.eventData.medicine,
+        "dosage": response.eventData.dosage,
+        "withdrawalTime": response.eventData.withdrawalTime,
+      }..removeWhere((key, value) => value == null),
+    );
+    addEvent(event);
   }
 
   void removeEvent(CattleActivityEvent event) {

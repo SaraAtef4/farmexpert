@@ -9,8 +9,8 @@ class UpdateVeterinairResponse {
 
   factory UpdateVeterinairResponse.fromJson(Map<String, dynamic> json) {
     return UpdateVeterinairResponse(
-      message: json['message'],
-      veterinair: Veterinair.fromJson(json['veterinair']),
+      message: "Veterinair updated successfully", // ✅ يدويًا
+      veterinair: Veterinair.fromJson(json),      // ✅ لأن البيانات كلها جاية مباشرة
     );
   }
 }
