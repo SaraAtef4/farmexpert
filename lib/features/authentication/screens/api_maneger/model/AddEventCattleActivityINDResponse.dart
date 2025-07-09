@@ -12,37 +12,6 @@ class AddEventCattleActivityINDResponse {
   }
 }
 
-// class EventData {
-//   final int id;
-//   final String EventType;
-//   final int tagNumber;
-//   final String? medicine;
-//   final String? dosage;
-//   final String? withdrawalTime;
-//   final String date;
-//
-//   EventData({
-//     required this.id,
-//     required this.EventType,
-//     required this.tagNumber,
-//     this.medicine,
-//     this.dosage,
-//     this.withdrawalTime,
-//     required this.date,
-//   });
-//
-//   factory EventData.fromJson(Map<String, dynamic> json) {
-//     return EventData(
-//       id: json['id'],
-//       EventType: json['EventType'],
-//       tagNumber: json['tagNumber'],
-//       medicine: json['medicine'],
-//       dosage: json['dosage'],
-//       withdrawalTime: json['withdrawalTime'],
-//       date: json['date'],
-//     );
-//   }
-// }
 
 class EventData {
   final int? id;

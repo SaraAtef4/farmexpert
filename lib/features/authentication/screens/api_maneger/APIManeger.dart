@@ -603,11 +603,17 @@ import 'package:farmxpert/features/authentication/screens/api_maneger/model/AddW
 import 'package:farmxpert/features/authentication/screens/api_maneger/model/GetAllResponse.dart';
 import 'package:farmxpert/features/authentication/screens/api_maneger/auth_service_response.dart';
 
+import '../../../cattle_activity/models/activity_model.dart';
 import 'constants.dart';
 import 'model/AddEventCattleActivityINDResponse.dart';
+import 'model/AddEventCattleActivityMassResponse.dart';
+import 'model/AllEventsResponse.dart';
+import 'model/AllMassEventResponse.dart';
+import 'model/DeleteEventResponse.dart';
 import 'model/DeleteMilkProductionResponse.dart';
 import 'model/DeleteVeterinarianResponse.dart';
 import 'model/EditMilkProductionResponse.dart';
+import 'model/EventTypeMassResponse.dart';
 import 'model/EventTypeResponseCattleActivityIND.dart';
 
 class ApiManager {
@@ -1253,44 +1259,6 @@ class ApiManager {
     }
   }
 
-
-  //  Future<AddEventCattleActivityINDResponse?> addEventCattleActivityIND(Map<String, dynamic> bodyData) async {
-  //   try {
-  //     final prefs = await SharedPreferences.getInstance();
-  //     final token = prefs.getString('token');
-  //
-  //     if (token == null || token.isEmpty) {
-  //       print("🚫 No token found in SharedPreferences");
-  //       return null;
-  //     }
-  //
-  //     final response = await http.post(
-  //       Uri.parse(ApiConstants.cattleActivityIND_AddEvent),
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         "Authorization": "Bearer $token",
-  //       },
-  //       body: jsonEncode(bodyData),
-  //     );
-  //
-  //     if (response.statusCode == 200) {
-  //       final jsonData = jsonDecode(response.body);
-  //       return AddEventCattleActivityINDResponse.fromJson(jsonData);
-  //     } else {
-  //       print("⚠️ Failed to add event: ${response.statusCode}");
-  //       print("Response: ${response.body}");
-  //       print("📤 Sending bodyData: $bodyData");
-  //       print("❌ Server responded: ${response.statusCode}");
-  //       print("❌ Body: ${response.body}");
-  //       return null;
-  //     }
-  //   } catch (e) {
-  //     print("🚨 Exception in addEventCattleActivityIND: $e");
-  //
-  //     return null;
-  //   }
-  // }
-
   static Future<List<CattleModel>> getCowsOnly() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("token");
@@ -1323,4 +1291,186 @@ class ApiManager {
       return [];
     }
   }
+
+  Future<List<AllEventsResponse>?> getAllEvents() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null || token.isEmpty) {
+        print("🚫 No token found ");
+        return null;
+      }
+
+      final url = Uri.parse(ApiConstants.cattleActivityIND_AllEvents);
+      final response = await http.get(
+        url,
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return (data as List).map((e) => AllEventsResponse.fromJson(e)).toList();
+      } else {
+        print("⚠️ Failed to fetch events: ${response.statusCode}");
+        print("❌ Body: ${response.body}");
+        return null;
+      }
+    } catch (e) {
+      print("🚨 Exception in getAllEvents: $e");
+      return null;
+    }
+  }
+
+  Future<DeleteEventResponse?> deleteEvent(int id) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null || token.isEmpty) {
+        print("🚫 No token found");
+        return null;
+      }
+
+      final url = '${ApiConstants.cattleActivityIND_DeleteEvent}/$id';
+      final uri = Uri.parse(url);
+
+      final response = await http.delete(
+        uri,
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return DeleteEventResponse.fromJson(data);
+      } else {
+        print("⚠️ Failed to delete event: ${response.statusCode}");
+        print(response.body);
+        return null;
+      }
+    } catch (e) {
+      print("🚨 Exception in deleteEvent: $e");
+      return null;
+    }
+  }
+
+  Future<List<EventTypeMassResponse>?> fetchMassEventTypes() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null || token.isEmpty) {
+        print("🚫 No token found in SharedPreferences");
+        return null;
+      }
+
+      final response = await http.get(
+        Uri.parse(ApiConstants.getMassEventTypesUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((e) => EventTypeMassResponse.fromJson(e)).toList();
+      } else {
+        print("⚠️ Error fetching mass event types: ${response.statusCode}");
+        print("Body: ${response.body}");
+        return null;
+      }
+    } catch (e) {
+      print("🚨 Exception in fetchMassEventTypes: $e");
+      return null;
+    }
+  }
+
+  Future<List<MassEventResponse>?> fetchAllMassEvents() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null || token.isEmpty) {
+        print("🚫 No token found in SharedPreferences");
+        return null;
+      }
+
+      final response = await http.get(
+        Uri.parse(ApiConstants.getAllMassEventsUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((e) => MassEventResponse.fromJson(e)).toList();
+      } else {
+        print("⚠️ Error fetching mass events: ${response.statusCode}");
+        print("Body: ${response.body}");
+        return null;
+      }
+    } catch (e) {
+      print("🚨 Exception in fetchAllMassEvents: $e");
+      return null;
+    }
+  }
+
+  Future<AddEventCattleActivityMassResponse?> addEventCattleActivityMass(Map<String, String> bodyData) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null || token.isEmpty) {
+        print("🚫 No token found in SharedPreferences");
+        return null;
+      }
+
+      var uri = Uri.parse(ApiConstants.cattleActivityMass_AddEvent); // ✅ الخطوة الجاية هنضيفه في constants
+      var request = http.MultipartRequest('POST', uri);
+
+      // Add headers
+      request.headers.addAll({
+        "Authorization": "Bearer $token",
+      });
+
+      // Add cleaned fields (to avoid null crashes)
+      final cleanedBodyData = <String, String>{};
+      bodyData.forEach((key, value) {
+        if (key != null && value != null) {
+          cleanedBodyData[key] = value;
+        }
+      });
+
+      request.fields.addAll(cleanedBodyData);
+
+      print("🟡 Final Mass BodyData Sent (Multipart): ${request.fields}");
+
+      var response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+
+      if (response.statusCode == 200) {
+        final jsonData = jsonDecode(responseBody);
+        return AddEventCattleActivityMassResponse.fromJson(jsonData);
+      } else {
+        print("⚠️ Failed to add mass event: ${response.statusCode}");
+        print("❌ Body: $responseBody");
+        return null;
+      }
+    } catch (e) {
+      print("🚨 Exception in addEventCattleActivityMass: $e");
+      return null;
+    }
+  }
+
+
+
 }

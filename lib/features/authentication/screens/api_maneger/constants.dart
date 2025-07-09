@@ -37,6 +37,16 @@ class ApiConstants {
 
   static const String cattleActivityIND_EventTypes = '$baseUrl/CattleActivityIND/EventTypes';
   static const String cattleActivityIND_AddEvent = '$baseUrl/CattleActivityIND/AddEvent';
+  static const String cattleActivityIND_AllEvents = '$baseUrl/CattleActivityIND/AllEvents';
+  static const String cattleActivityIND_DeleteEvent = '$baseUrl/CattleActivityIND/DeleteEvent';
+
+  // ✅ Mass Events API Endpoints
+  static const String getMassEventTypesUrl = '$baseUrl/CattleEventMass/EventTypes';
+  static const String getAllMassEventsUrl = '$baseUrl/CattleEventMass/AllMassEvents';
+  static const String cattleActivityMass_AddEvent = '$baseUrl/api/CattleEventMass/AddMassEvent';
+
+
+
 
 
 }

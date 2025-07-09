@@ -32,7 +32,7 @@ class _FilterEventsBottomSheetState extends State<FilterEventsBottomSheet> {
     _tempFilterEventType = provider.filterEventType;
     _tempFilterStartDate = provider.filterStartDate;
     _tempFilterEndDate = provider.filterEndDate;
-    _tempFilterIsIndividual = provider.filterIsIndividual;
+    // _tempFilterIsIndividual = provider.;
 
     if (_tempFilterStartDate != null) {
       _startDateController.text = DateFormat('yyyy-MM-dd').format(_tempFilterStartDate!);
@@ -91,7 +91,7 @@ class _FilterEventsBottomSheetState extends State<FilterEventsBottomSheet> {
       eventType: _tempFilterEventType,
       startDate: _tempFilterStartDate,
       endDate: _tempFilterEndDate,
-      isIndividual: _tempFilterIsIndividual,
+      // isIndividual: _tempFilterIsIndividual,
     );
     Navigator.pop(context);
   }

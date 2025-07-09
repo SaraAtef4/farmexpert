@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import '../../../data/providers/cattle_events_provider.dart';
 import '../../../test/widgets/milk_text_field.dart';
 import '../../authentication/screens/api_maneger/APIManeger.dart';
+import 'cattle_activity_screen.dart';
 
 class AddEventScreen extends StatefulWidget {
   final bool isIndividual;
@@ -228,7 +229,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
         }..removeWhere((key, value) => value == null),
       );
 
-      Provider.of<CattleEventsProvider>(context, listen: false).addEvent(addedEvent);
+      // Provider.of<CattleEventsProvider>(context, listen: false).addEvent(addedEvent);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -237,7 +238,10 @@ class _AddEventScreenState extends State<AddEventScreen> {
           backgroundColor: Colors.green[700],
         ),
       );
-      Navigator.of(context).pop();
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => CattleActivityScreen()),
+            (route) => false,
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -247,19 +251,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
       );
     }
 
-    // Show success message
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-            '${widget.isIndividual ? "Individual" : "Group"} event added successfully'),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        backgroundColor: Colors.green[700],
-      ),
-    );
 
-    // Navigate back
-    Navigator.of(context).pop();
   }
 
   // Build dynamic form fields based on event type
